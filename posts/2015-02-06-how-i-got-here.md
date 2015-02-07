@@ -10,9 +10,10 @@ My boss had decided that for various reasons too numerous and extensive to list 
 It quickly evolved to a distributed system - some parts were sensors or actuators that were BLE peripherals, another part ran constantly as a BLE central, another part ended up as a more powerful, Internet-connected Linux machine that ran only sparingly.
 
 A few patterns emerged:
- - All parts needed to be speaking the same protocol, which necessitated keeping various structures and constants in sync at the software each part ran.
- - The nRF51822 board acting as the BLE central was responsible for juggling a lot of concurrent operations, because nearly all API calls were async.
- - The nRF51822 boards ran different software, but still shared various bits of code and constants.
+
+- All parts needed to be speaking the same protocol, which necessitated keeping various structures and constants in sync at the software each part ran.
+- The nRF51822 board acting as the BLE central was responsible for juggling a lot of concurrent operations, because nearly all API calls were async.
+- The nRF51822 boards ran different software, but still shared various bits of code and constants.
 
 The two languages here were C for the nRF51822, and Python for the Linux machine. I tried to build abstractions that could sensibly represent these patterns, but were sufficiently lightweight in C. One was in Python to keep data types in sync; for Linux, it handled it at runtime in Python, and for the microcontroller, it generated C code with the requisite `memcpy` calls and proper offsets and lengths. The C code also had various FSMs (some explicit, some not) for managing the concurrent operations. At later examination they were nearly all ad-hoc coroutines that were 'hiding' a very simple concurrent description in their details.
 
@@ -23,11 +24,13 @@ I had recently read Joe Armstrong's famous [thesis on Erlang](http://www.erlang.
 Around the same point, I had also extended my Python code generation to generate code for some more complex protocols and refactored it to make use of a very handy library, [Cog](https://www.python.org/about/success/cog/).
 
 At some point I saw that these all were sides of the same ugly dilemma (trilemma?):
+
 - I could write larger amounts of code that would 'hide' the simpler representations inside.
 - I could attempt to streamline the above with code generation via macros.
 - I could build or use runtime abstractions that helped me approximate those simpler representations, but incurred too much overhead.
 
 `#define` and `#include` existed, but they addressed only the smallest of cases, and I felt like C++ was no cure either. Cog helped streamline the code generation, but my code generation still felt like primitive macros. My view of code generation in general was grim too, from seeing its use at other jobs. In particular:
+
 1. The need for automatically-generated code probably means that the underlying language lacks the right abstractions (or that you do not understand them).
 2. Either you incur the complexity of implementing the code generation in that same (lacking or ill-understood) language, or you incur the mental overhead of having to coordinate with another language at the same time - possibly a third language, if you handle specifications in a separate language.
 3. You don't fix a problem in automatically-generated code - you fix the code generator or the specifications, which is nearly always more difficult and has more consequences.
