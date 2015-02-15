@@ -10,6 +10,7 @@ Some ideas:
 - More specific Ivory examples?  I could probably create a simplified example.
 - Atom & concurrency - some examples here would be most helpful.
 - What about the Ruby creator quote that I quite like?
+- For Ivory: What I ran into with C forcing a coupling between compilation unit and local representation.
 
 Stuff that might be out of the scope of this blog:
 
