@@ -43,6 +43,8 @@ Lee Pike in his link refers to Atom as a [synchronous language](https://en.wikip
 
 # Examples
 
+This file [2015-02-13-atom-examples.lhs](2015-02-13-atom-examples.lhs) is a Literate Haskell file, so it is runnable.
+
 # References
 ## Slides
 1. Hawkins, T. (2008). Controlling Hybrid Vehicles with Haskell.  [http://cufp.galois.com/2008/slides/HawkinsTom.pdf](http://cufp.galois.com/2008/slides/HawkinsTom.pdf).
