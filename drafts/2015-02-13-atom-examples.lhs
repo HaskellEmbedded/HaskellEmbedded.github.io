@@ -140,9 +140,15 @@ Next, suppose I have a sensor I want to monitor every 1/10 second, and getting a
 > checkSensor :: Atom ()
 > checkSensor = do
 >   ready <- return $ bool' "sensor_ready"
->   period 100 $ atom "checkSensor" $ do
+>   sensor_value <- return $ word16' "sensor_incoming"
+>   
+>   atom "triggerSensor" $ do
 >     ready <== false
 >     call "sensor_trigger_measurement"
+>     
+>   atom "checkSensorValue" $ do
+>     cond $ value ready
+>     sensor_value <== 0x500
 
 References
 ====
