@@ -71,7 +71,7 @@
 <p>Atom’s approach is a bit different than anything I’d mentioned in the prior section. As Hawkins’ slides mention at page 12, Atom’s compiler handles scheduling and synchronization, avoiding the need for locks, semaphores, or any kind of scheduling at run-time. As a Haskell EDSL, it also moves the abstraction up into Haskell rather than trying to make abstractions accessible from C, and that is not a trivial benefit.</p>
 <p>Lee Pike in his link refers to Atom as a <a href="https://en.wikipedia.org/wiki/Synchronous_programming_language">synchronous language</a>: one specifies rules that fire on clock ticks, and state changes are atomic. This is good to bear in mind when understanding Atom definitions.</p>
 <h1 id="example">Example</h1>
-<p>This file (<a href="2015-02-13-atom-examples.lhs" class="uri">2015-02-13-atom-examples.lhs</a>) is a Literate Haskell file, so it is runnable with the example explained here. Only <code>cabal install atom</code> should be needed.</p>
+<p>This file (<a href="2015-02-17-atom-examples.lhs" class="uri">2015-02-17-atom-examples.lhs</a>) is a Literate Haskell file, so it is runnable with the example explained here. Only <code>cabal install atom</code> should be needed.</p>
 <h2 id="standard-boilerplate">Standard Boilerplate</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span> <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
 <span class="ot">&gt;</span> 

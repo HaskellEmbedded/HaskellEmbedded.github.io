@@ -42,7 +42,7 @@ Lee Pike in his link refers to Atom as a [synchronous language](https://en.wikip
 Example
 ====
 
-This file ([2015-02-13-atom-examples.lhs](2015-02-13-atom-examples.lhs)) is a Literate Haskell file, so it is runnable with the example explained here. Only `cabal install atom` should be needed.
+This file ([2015-02-17-atom-examples.lhs](2015-02-17-atom-examples.lhs)) is a Literate Haskell file, so it is runnable with the example explained here. Only `cabal install atom` should be needed.
 
 Standard Boilerplate
 ----
