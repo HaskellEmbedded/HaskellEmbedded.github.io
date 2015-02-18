@@ -105,22 +105,21 @@ The Hackage documentation defines `cCode` and `hCode` better, including the argu
 Actual Atom
 ----
 
-Finally, I may describe the actual code that does something. Here is `example`, our top-level definition that we pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named [`Language.Atom.Language.Atom`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html) monad, which "captures variable and transition rule declarations."
+Finally, I may describe the actual code that does something. Here is `example`, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named [`Language.Atom.Language.Atom`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html) monad, which "captures variable and transition rule declarations."
 
 > example :: Atom ()
 > example = do
 > 
->   clock <- getClock
-> 
->   checkSensor
->   
->   period 10 $ atom "period10" $ do
->     printStrLn "Hello world!"
+>   clock <- tickSecond
+>
+>   checkSensor 16384 $ do
+>     call "on_sensor_over_threshold"
+>     printStrLn "Sensor value over threshold!"
 
-`getClock` is defined below:
+I define both `tickSecond` and `checkSensor` below. The arguments to `checkSensor` are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.
 
-> getClock :: Atom (V Word64)
-> getClock = do
+> tickSecond :: Atom (V Word64)
+> tickSecond = do
 >   clock <- word64 "clock_sec" 0
 >   period 1000 $ exactPhase 0 $ atom "second" $ incr clock
 >   return clock
@@ -135,20 +134,63 @@ I mentioned *base rate of the system.* That base rate is the rate at which I cal
 
 I give the sub-rule a unique name ("second"), and the sub-rule is responsible for incrementing `clock` via [`incr`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr), once per second.
 
-Next, suppose I have a sensor I want to monitor every 1/10 second, and getting a measurement is asychronous.
+Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:
 
-> checkSensor :: Atom ()
-> checkSensor = do
->   ready <- return $ bool' "sensor_ready"
->   sensor_value <- return $ word16' "sensor_incoming"
+1. Power it on via a C call `sensor_on`.
+2. Wait at least 10 milliseconds for it to settle.
+3. Trigger a measurement via a C call `sensor_trigger`.
+4. Wait for some external variable `g_sensor_ready` to indicate true.
+5. Receive our result in another external variable, `g_sensor_value`.
+6. Power the sensor off via `sensor_off`.
+
+Suppose, also, we want a threshold value and an action to take if the sensor exceeds that threshold.
+
+I attempt to do this below:
+
+> checkSensor :: Word16 -> Atom () -> Atom ()
+> checkSensor threshold action = atom "check_sensor" $ do
+>   ready <- return $ bool' "g_sensor_ready"
+>   sensor_value <- return $ word16' "g_sensor_value"
+>   warmup <- timer "warmup"
+> 
+>   period 2000 $ phase 500 $ atom "powerOn" $ do
+>     call "sensor_on"
+>     startTimer warmup $ Const 10
 >   
->   atom "triggerSensor" $ do
+>   atom "trigger" $ do
+>     cond $ timerDone warmup
 >     ready <== false
->     call "sensor_trigger_measurement"
+>     call "sensor_trigger"
 >     
 >   atom "checkSensorValue" $ do
 >     cond $ value ready
->     sensor_value <== 0x500
+>     ready <== false
+>     call "sensor_off"
+>     cond $ value sensor_value >. Const threshold
+>     action
+
+While `atom "check_sensor"` may not (as I understand it) be strictly necessary here, that call to [`atom`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom) defines this whole thing as a sub-rule, and this hierarchy will emerge in the organization and identifiers in the generated code.
+
+I use a few new constructs here:
+
+- *External variables:* I introduce `ready` using [`bool'`](hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-), tying it to an external C variable `g_sensor_ready` (and likewise `sensor_value` to `g_sensor_value` using [`word16'`](hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-)).  
+- *Timers:* `warmup` is a [`Timer`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#t:Timer) which I use to count down 10 ticks (10 milliseconds) from the time of powering on the sensor (see [`startTimer`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#v:startTimer) in the `powerOn` rule).
+- *Conditionals:* The rule `trigger` makes use of [`cond`](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond) to execute only when that timer has finished. The rule `checkSensorValue` likewise uses it to execute only when the measurement is ready, and to execute `action` only when the value exceeds the threshold.
+
+Note also that the rule `powerOn` has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The other two rules implicitly have period 1 - they run at every clock tick.
+
+Big Gaping Holes in This Example
+----
+Things I still have not touched:
+
+1. Phases (in any useful sense)
+2. Probes
+3. Assertions
+4. Coverage checking
+5. What the Atom compiler outputs
+6. What generated code looks like
+7. Periods overriding later periods
+8. The practical notion that you can apply periods and phases to entire sub-rules if you like
 
 References
 ====
