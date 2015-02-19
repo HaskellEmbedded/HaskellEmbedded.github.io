@@ -54,7 +54,7 @@
     
 </div>
 
-<p>In the <a href="./2015-02-06-how-i-got-here.html">last post</a> I talked briefly about <a href="http://hackage.haskell.org/package/atom">Atom</a>, a Haskell EDSL from <a href="http://tomahawkins.org/">Tom Hawkins</a> for hard realtime embedded software. I hope to go into a little more detail here.</p>
+<p>In the <a href="./2015-02-06-how-i-got-here.html">last post</a> I talked briefly about <a href="http://hackage.haskell.org/package/atom" title="atom: A DSL for embedded hard realtime applications. (hackage)">Atom</a>, a Haskell EDSL from <a href="http://tomahawkins.org/">Tom Hawkins</a> for hard realtime embedded software. I hope to go into a little more detail here.</p>
 <h1 id="background">Background</h1>
 <p>As that post mentioned, I was running into problems handling concurrency in software for my embedded target (a <a href="https://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF51822">Nordic nRF51822</a>). My embedded software had operations throughout that required some fairly specific timing, for instance:</p>
 <ol style="list-style-type: decimal">
@@ -80,16 +80,16 @@
 <li><a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html">Language.Atom.Expressions</a></li>
 <li><a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html">Language.Atom.Language</a></li>
 </ul></li>
-<li>some slides from creator Tom Hawkins in 2008, <a href="http://cufp.galois.com/2008/slides/HawkinsTom.pdf">Controlling Hybrid Vehicles with Haskell</a>. Some names in the example code have since changed, such as <code>atom</code> replacing <code>system</code>.</li>
-<li>a more formal example from Lee Pike, <a href="https://leepike.wordpress.com/2009/05/05/an-atomic-fibonacci-server-exploring-the-atom-haskell-dsl/">An Atomic Fibonacci Server: Exploring the Atom (Haskell) DSL</a>. His links to code examples appear to be down, but the Wayback Machine has old copies.</li>
-<li>a 2009 blog post from Don Stewart, <a href="https://archhaskell.wordpress.com/2009/08/01/atom-a-domain-specific-language-for-hard-realtime-applications/">Atom : a domain specific language for hard realtime applications</a></li>
-<li>two now-offline blog posts from John Van Enk at blog.sw17ch.com, <a href="https://web.archive.org/web/20110812162216/http://blog.sw17ch.com/wordpress/?p=84">Atom &amp; Arduino : Some Hacking (pt. 1)</a> and <a href="https://web.archive.org/web/20110812162107/http://blog.sw17ch.com/wordpress/?p=111">Atom &amp; Arduino : First Program (pt. 2)</a></li>
+<li>some slides from creator Tom Hawkins in 2008, <a href="http://cufp.galois.com/2008/slides/HawkinsTom.pdf" title="Controlling Hybrid Vehicles with Haskell. Hawkins, T. (2008).">Controlling Hybrid Vehicles with Haskell</a>. Some names in the example code have since changed, such as <code>atom</code> replacing <code>system</code>.</li>
+<li>a more formal example from Lee Pike, <a href="https://leepike.wordpress.com/2009/05/05/an-atomic-fibonacci-server-exploring-the-atom-haskell-dsl/" title="An Atomic Fibonacci Server: Exploring the Atom (Haskell) DSL. Pike. L. (2009).">An Atomic Fibonacci Server: Exploring the Atom (Haskell) DSL</a>. His links to code examples appear to be down, but the Wayback Machine has old copies.</li>
+<li>a 2009 blog post from Don Stewart, <a href="https://archhaskell.wordpress.com/2009/08/01/atom-a-domain-specific-language-for-hard-realtime-applications" title="Atom : a domain specific language for hard realtime applications. Stewart, D. (2009).">Atom : a domain specific language for hard realtime applications</a></li>
+<li>two now-offline blog posts from John Van Enk at blog.sw17ch.com, <a href="https://web.archive.org/web/20110812162216/http://blog.sw17ch.com/wordpress/?p=84" title="Atom &amp; Arduino : Some Hacking (pt. 1). Van Enk, J. (2009).">Atom &amp; Arduino : Some Hacking (pt. 1)</a> and <a href="https://web.archive.org/web/20110812162107/http://blog.sw17ch.com/wordpress/?p=111" title="Atom &amp; Arduino : First Program (pt. 2). Van Enk, J. (2009).">Atom &amp; Arduino : First Program (pt. 2)</a></li>
 <li><a href="https://github.com/eightyeight/atom-msp430">atom-msp430</a>, 3rd-party code for interfacing with MSP430 microcontrollers.</li>
 </ul>
 <p>Atom’s approach is a bit different than anything I’d mentioned in the prior section. As Hawkins’ slides mention at page 12, Atom’s compiler handles scheduling and synchronization, avoiding the need for locks, semaphores, or any kind of scheduling at run-time. As a Haskell EDSL, it also moves the abstraction up into Haskell rather than trying to make abstractions accessible from C, and that is not a trivial benefit.</p>
 <p>Lee Pike in his link refers to Atom as a <a href="https://en.wikipedia.org/wiki/Synchronous_programming_language">synchronous language</a>: one specifies rules that fire on clock ticks, and state changes are atomic. This is good to bear in mind when understanding Atom definitions.</p>
 <h1 id="example">Example</h1>
-<p>This file (<a href="2015-02-17-atom-examples.lhs" class="uri">2015-02-17-atom-examples.lhs</a>) is a Literate Haskell file, so it is runnable with the example explained here. Only <code>cabal install atom</code> should be needed.</p>
+<p>This post’s <a href="./2015-02-17-atom-examples.lhs">source code</a> is a Literate Haskell file, so you may run it directly. Only <code>cabal install atom</code> should be needed. I explain the source in a little more detail below.</p>
 <h2 id="standard-boilerplate">Standard Boilerplate</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span> <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
 <span class="ot">&gt;</span> 
@@ -101,10 +101,10 @@
 <span class="ot">&gt;</span> main <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>    (sched, _, _, _, _) <span class="ot">&lt;-</span> compile <span class="st">&quot;atom_example&quot;</span> atomCfg example
 <span class="ot">&gt;</span>    putStrLn <span class="fu">$</span> reportSchedule sched</code></pre>
-<p><code>main</code> just runs the Atom compiler via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:compile"><code>Language.Atom.Compile.compile</code></a>. The function below will produce C source code in <code>atomExample.c</code> and <code>atomExample.h</code>, and it will call <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule"><code>reportSchedule</code></a> to output some (maybe) meaningful information.</p>
+<p><code>main</code> just runs the Atom compiler via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:compile">Language.Atom.Compile.compile</a>. The function below will produce C source code in <code>atom_example.c</code> and <code>atom_example.h</code>, and it will call <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule">reportSchedule</a> to output some (maybe) meaningful information.</p>
 <p><code>example</code> is the important part and it’s defined a few sections below.</p>
 <h2 id="configuration">Configuration</h2>
-<p><code>atomCfg</code> gives some code generation configuration via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config"><code>Language.Atom.Code.Config</code></a>. Most items here have sane defaults and are out of scope for this example; we turn off rule coverage checking with <code>cRuleCoverage</code>. I define two optional ones that are quite important in the generated code:</p>
+<p><code>atomCfg</code> gives some code generation configuration via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config">Language.Atom.Code.Config</a>. Most items here have sane defaults and are out of scope for this example; we turn off rule coverage checking with <code>cRuleCoverage</code>. I define two optional ones that are quite important in the generated code:</p>
 <ul>
 <li><code>cFuncName</code> is the name of the top-level C function that must be called at regular intervals, such as by a timer interrupt.</li>
 <li><code>cStateName</code> is the name of a C struct that includes all global state.</li>
@@ -132,7 +132,7 @@
 <span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;// ---- End automatically-generated header ----&quot;</span>
 <span class="ot">&gt;</span>             ])</code></pre>
 <h2 id="actual-atom">Actual Atom</h2>
-<p>Finally, I may describe the actual code that does something. Here is <code>example</code>, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html"><code>Language.Atom.Language.Atom</code></a> monad, which “captures variable and transition rule declarations.”</p>
+<p>Finally, I may describe the actual code that does something. Here is <code>example</code>, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html">Language.Atom.Language.Atom</a> monad, which “captures variable and transition rule declarations.”</p>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; example ::</span> <span class="dt">Atom</span> ()
 <span class="ot">&gt;</span> example <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span> 
@@ -149,12 +149,12 @@
 <span class="ot">&gt;</span>   return clock</code></pre>
 <p>Note a few new things:</p>
 <ul>
-<li>I define <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word64"><code>word64</code></a>, which introduces a local variable, an unsigned 64-bit integer. “clock_sec” is a C name - more specifically, the field name inside the struct above whose name I set with <code>cStateName</code>. 0 is an initial value.</li>
+<li>I define <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word64">word64</a>, which introduces a local variable, an unsigned 64-bit integer. “clock_sec” is a C name - more specifically, the field name inside the struct above whose name I set with <code>cStateName</code>. 0 is an initial value.</li>
+<li>I’ve defined a sub-rule with <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:period">period</a> which executes at 1 / 1000 of the base rate of the system. I’ve also used <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:exactPhase">exactPhase</a> to dictate that it runs first in that period (i.e. at <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:phase">phase</a> 0).</li>
 <li>I return <code>clock</code> in the monad. Its <code>V Word64</code> type wraps a standard Haskell <code>Data.Word.Word64</code>.</li>
-<li>I’ve defined a sub-rule with <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:period"><code>period</code></a> which executes at 1 / 1000 of the base rate of the system. I’ve also used <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:exactPhase"><code>exactPhase</code></a> to dictate that it runs first in that period (i.e. at <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:phase"><code>phase</code></a> 0).</li>
 </ul>
 <p>I mentioned <em>base rate of the system.</em> That base rate is the rate at which I call <code>atom_tick</code> (the function set earlier with <code>cFuncName</code>). I intend to write the C code to call it at intervals of 1 millisecond. Thus, the sub-rule above executes at 1 / 1000 of this - once every second.</p>
-<p>I give the sub-rule a unique name (“second”), and the sub-rule is responsible for incrementing <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr"><code>incr</code></a>, once per second.</p>
+<p>I give the sub-rule a unique name (“second”), and the sub-rule is responsible for incrementing <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr">incr</a>, once per second.</p>
 <p>Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:</p>
 <ol style="list-style-type: decimal">
 <li>Power it on via a C call <code>sensor_on</code>.</li>
@@ -187,12 +187,12 @@
 <span class="ot">&gt;</span>     call <span class="st">&quot;sensor_off&quot;</span>
 <span class="ot">&gt;</span>     cond <span class="fu">$</span> value sensor_value <span class="fu">&gt;.</span> <span class="dt">Const</span> threshold
 <span class="ot">&gt;</span>     action</code></pre>
-<p>While <code>atom &quot;check_sensor&quot;</code> may not (as I understand it) be strictly necessary here, that call to <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom"><code>atom</code></a> defines this whole thing as a sub-rule, and this hierarchy will emerge in the organization and identifiers in the generated code.</p>
+<p>While <code>atom &quot;check_sensor&quot;</code> may not (as I understand it) be strictly necessary here, that call to <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom">atom</a> defines this whole thing as a sub-rule, and this hierarchy will emerge in the organization and identifiers in the generated code.</p>
 <p>I use a few new constructs here:</p>
 <ul>
-<li><em>External variables:</em> I introduce <code>ready</code> using <a href="hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-"><code>bool'</code></a>, tying it to an external C variable <code>g_sensor_ready</code> (and likewise <code>sensor_value</code> to <code>g_sensor_value</code> using <a href="hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-"><code>word16'</code></a>).<br /></li>
-<li><em>Timers:</em> <code>warmup</code> is a <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#t:Timer"><code>Timer</code></a> which I use to count down 10 ticks (10 milliseconds) from the time of powering on the sensor (see <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#v:startTimer"><code>startTimer</code></a> in the <code>powerOn</code> rule).</li>
-<li><em>Conditionals:</em> The rule <code>trigger</code> makes use of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond"><code>cond</code></a> to execute only when that timer has finished. The rule <code>checkSensorValue</code> likewise uses it to execute only when the measurement is ready, and to execute <code>action</code> only when the value exceeds the threshold.</li>
+<li><em>External variables:</em> I introduce <code>ready</code> using <a href="hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-">bool’</a>, tying it to an external C variable <code>g_sensor_ready</code> (and likewise <code>sensor_value</code> to <code>g_sensor_value</code> using <a href="hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-">word16’</a>).<br /></li>
+<li><em>Timers:</em> <code>warmup</code> is a <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#t:Timer">Timer</a> which I use to count down 10 ticks (10 milliseconds) from the time of powering on the sensor (see <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#v:startTimer">startTimer</a> in the <code>powerOn</code> rule).</li>
+<li><em>Conditionals:</em> The rule <code>trigger</code> makes use of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond">cond</a> to execute only when that timer has finished. The rule <code>checkSensorValue</code> likewise uses it to execute only when the measurement is ready, and to execute <code>action</code> only when the value exceeds the threshold.</li>
 </ul>
 <p>Note also that the rule <code>powerOn</code> has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The other two rules implicitly have period 1 - they run at every clock tick.</p>
 <h2 id="big-gaping-holes-in-this-example">Big Gaping Holes in This Example</h2>
@@ -206,16 +206,6 @@
 <li>What generated code looks like</li>
 <li>Periods overriding later periods</li>
 <li>The practical notion that you can apply periods and phases to entire sub-rules if you like</li>
-</ol>
-<h1 id="references">References</h1>
-<h2 id="slides">Slides</h2>
-<ol style="list-style-type: decimal">
-<li>Hawkins, T. (2008). Controlling Hybrid Vehicles with Haskell. <a href="http://cufp.galois.com/2008/slides/HawkinsTom.pdf" class="uri">http://cufp.galois.com/2008/slides/HawkinsTom.pdf</a>.</li>
-</ol>
-<h2 id="websites">Websites</h2>
-<ol style="list-style-type: decimal">
-<li>atom: A DSL for embedded hard realtime applications. <a href="http://hackage.haskell.org/package/atom" class="uri">http://hackage.haskell.org/package/atom</a> and <a href="https://github.com/tomahawkins/atom" class="uri">https://github.com/tomahawkins/atom</a>.</li>
-<li>An Atomic Fibonacci Server: Exploring the Atom (Haskell) DSL. <a href="https://leepike.wordpress.com/2009/05/05/an-atomic-fibonacci-server-exploring-the-atom-haskell-dsl/" class="uri">https://leepike.wordpress.com/2009/05/05/an-atomic-fibonacci-server-exploring-the-atom-haskell-dsl/</a>.</li>
 </ol>
 
         </div>
