@@ -178,7 +178,7 @@ While `atom "check_sensor"` may not (as I understand it) be strictly necessary h
 
 I use a few new constructs here:
 
-- *External variables:* I introduce `ready` using [bool'](hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-), tying it to an external C variable `g_sensor_ready` (and likewise `sensor_value` to `g_sensor_value` using [word16'](hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-)).  
+- *External variables:* I introduce `ready` using [bool'](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-), tying it to an external C variable `g_sensor_ready` (and likewise `sensor_value` to `g_sensor_value` using [word16'](hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-)).  
 - *Timers:* `warmup` is a [Timer](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#t:Timer) which I use to count down 10 ticks (10 milliseconds) from the time of powering on the sensor (see [startTimer](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#v:startTimer) in the `powerOn` rule).
 - *Conditionals:* The rule `trigger` makes use of [cond](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond) to execute only when that timer has finished. The rule `checkSensorValue` likewise uses it to execute only when the measurement is ready, and to execute `action` only when the value exceeds the threshold.
 
