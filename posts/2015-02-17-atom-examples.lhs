@@ -114,7 +114,7 @@ The Hackage documentation defines `cCode` and `hCode` better, including the argu
 >   , unlines [ "// ---- End automatically-generated header ----"
 >             ])
 
-Top-level (`example`) Rule
+Top-level (*example*) rule
 ----
 
 Finally, I may describe the actual code that does something. Here is `example`, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named [Language.Atom.Language.Atom](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html) monad, which "captures variable and transition rule declarations."
@@ -130,7 +130,7 @@ Finally, I may describe the actual code that does something. Here is `example`, 
 
 I define both `tickSecond` and `checkSensor` below. The arguments to `checkSensor` are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.
 
-`tickSecond` Rule
+*tickSecond* sub-rule
 ----
 
 > tickSecond :: Atom (V Word64)
@@ -149,7 +149,7 @@ I mentioned *base rate of the system.* That base rate is the rate at which I cal
 
 I give the sub-rule a unique name ("second"), and the sub-rule is responsible for incrementing `clock` via [incr](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr), once per second.
 
-`checkSensor` Rule
+*checkSensor* sub-rule
 ----
 Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:
 
