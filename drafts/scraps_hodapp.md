@@ -17,3 +17,9 @@ Stuff that might be out of the scope of this blog:
 - Why did I like Ruby?
 - Why did I like Python?
 - What did I find interesting about Lisp?
+
+Links to cover:
+
+- http://techoverflow.net/blog/2014/07/28/using-quasiquotation-for-more-readable-atom-code/
+- http://techoverflow.net/blog/2014/07/28/yet-another-atom-arduino-blinker/
+
