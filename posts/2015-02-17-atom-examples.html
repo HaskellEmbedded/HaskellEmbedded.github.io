@@ -142,7 +142,7 @@
 <span class="ot">&gt;</span>             ]
 <span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;// ---- End automatically-generated header ----&quot;</span>
 <span class="ot">&gt;</span>             ])</code></pre>
-<h2 id="top-level-example-rule">Top-level (<code>example</code>) Rule</h2>
+<h2 id="top-level-example-rule">Top-level (<em>example</em>) rule</h2>
 <p>Finally, I may describe the actual code that does something. Here is <code>example</code>, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html">Language.Atom.Language.Atom</a> monad, which “captures variable and transition rule declarations.”</p>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; example ::</span> <span class="dt">Atom</span> ()
 <span class="ot">&gt;</span> example <span class="fu">=</span> <span class="kw">do</span>
@@ -153,7 +153,7 @@
 <span class="ot">&gt;</span>     call <span class="st">&quot;on_sensor_over_threshold&quot;</span>
 <span class="ot">&gt;</span>     printStrLn <span class="st">&quot;Sensor value over threshold!&quot;</span></code></pre>
 <p>I define both <code>tickSecond</code> and <code>checkSensor</code> below. The arguments to <code>checkSensor</code> are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.</p>
-<h2 id="ticksecond-rule"><code>tickSecond</code> Rule</h2>
+<h2 id="ticksecond-sub-rule"><em>tickSecond</em> sub-rule</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; tickSecond ::</span> <span class="dt">Atom</span> (<span class="dt">V</span> <span class="dt">Word64</span>)
 <span class="ot">&gt;</span> tickSecond <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>   clock <span class="ot">&lt;-</span> word64 <span class="st">&quot;clock_sec&quot;</span> <span class="dv">0</span>
@@ -167,7 +167,7 @@
 </ul>
 <p>I mentioned <em>base rate of the system.</em> That base rate is the rate at which I call <code>atom_tick</code> (the function set earlier with <code>cFuncName</code>). I intend to write the C code to call it at intervals of 1 millisecond. Thus, the sub-rule above executes at 1 / 1000 of this - once every second.</p>
 <p>I give the sub-rule a unique name (“second”), and the sub-rule is responsible for incrementing <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr">incr</a>, once per second.</p>
-<h2 id="checksensor-rule"><code>checkSensor</code> Rule</h2>
+<h2 id="checksensor-sub-rule"><em>checkSensor</em> sub-rule</h2>
 <p>Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:</p>
 <ol style="list-style-type: decimal">
 <li>Power it on via a C call <code>sensor_on</code>.</li>
