@@ -89,7 +89,12 @@
 <p>Atom’s approach is a bit different than anything I’d mentioned in the prior section. As Hawkins’ slides mention at page 12, Atom’s compiler handles scheduling and synchronization, avoiding the need for locks, semaphores, or any kind of scheduling at run-time. As a Haskell EDSL, it also moves the abstraction up into Haskell rather than trying to make abstractions accessible from C, and that is not a trivial benefit.</p>
 <p>Lee Pike in his link refers to Atom as a <a href="https://en.wikipedia.org/wiki/Synchronous_programming_language">synchronous language</a>: one specifies rules that fire on clock ticks, and state changes are atomic. This is good to bear in mind when understanding Atom definitions.</p>
 <h1 id="example">Example</h1>
-<p>This post’s <a href="./2015-02-17-atom-examples.lhs">source code</a> is a Literate Haskell file, so you may run it directly. Only <code>cabal install atom</code> should be needed. I explain the source in a little more detail below.</p>
+<p>This post’s <a href="./2015-02-17-atom-examples.lhs">source code</a> is a Literate Haskell file, so you may run it directly. Only <code>cabal install atom</code> should be needed. The source code gives an example Atom specification which does two things:</p>
+<ol style="list-style-type: decimal">
+<li>Keeps track of a global clock in seconds.</li>
+<li>Monitors a sensor periodically via some external function calls, and performs some action whenever the sensor’s value exceeds a threshold.</li>
+</ol>
+<p>The rest of the source code is for configuration and interfacing with the Atom compiler.</p>
 <h2 id="standard-boilerplate">Standard Boilerplate</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span> <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
 <span class="ot">&gt;</span> 
@@ -131,7 +136,7 @@
 <span class="ot">&gt;</span>             ]
 <span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;// ---- End automatically-generated header ----&quot;</span>
 <span class="ot">&gt;</span>             ])</code></pre>
-<h2 id="actual-atom">Actual Atom</h2>
+<h2 id="top-level-example-rule">Top-level (<code>example</code>) Rule</h2>
 <p>Finally, I may describe the actual code that does something. Here is <code>example</code>, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html">Language.Atom.Language.Atom</a> monad, which “captures variable and transition rule declarations.”</p>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; example ::</span> <span class="dt">Atom</span> ()
 <span class="ot">&gt;</span> example <span class="fu">=</span> <span class="kw">do</span>
@@ -142,6 +147,7 @@
 <span class="ot">&gt;</span>     call <span class="st">&quot;on_sensor_over_threshold&quot;</span>
 <span class="ot">&gt;</span>     printStrLn <span class="st">&quot;Sensor value over threshold!&quot;</span></code></pre>
 <p>I define both <code>tickSecond</code> and <code>checkSensor</code> below. The arguments to <code>checkSensor</code> are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.</p>
+<h2 id="ticksecond-rule"><code>tickSecond</code> Rule</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; tickSecond ::</span> <span class="dt">Atom</span> (<span class="dt">V</span> <span class="dt">Word64</span>)
 <span class="ot">&gt;</span> tickSecond <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>   clock <span class="ot">&lt;-</span> word64 <span class="st">&quot;clock_sec&quot;</span> <span class="dv">0</span>
@@ -155,6 +161,7 @@
 </ul>
 <p>I mentioned <em>base rate of the system.</em> That base rate is the rate at which I call <code>atom_tick</code> (the function set earlier with <code>cFuncName</code>). I intend to write the C code to call it at intervals of 1 millisecond. Thus, the sub-rule above executes at 1 / 1000 of this - once every second.</p>
 <p>I give the sub-rule a unique name (“second”), and the sub-rule is responsible for incrementing <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr">incr</a>, once per second.</p>
+<h2 id="checksensor-rule"><code>checkSensor</code> Rule</h2>
 <p>Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:</p>
 <ol style="list-style-type: decimal">
 <li>Power it on via a C call <code>sensor_on</code>.</li>
@@ -195,7 +202,7 @@
 <li><em>Conditionals:</em> The rule <code>trigger</code> makes use of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond">cond</a> to execute only when that timer has finished. The rule <code>checkSensorValue</code> likewise uses it to execute only when the measurement is ready, and to execute <code>action</code> only when the value exceeds the threshold.</li>
 </ul>
 <p>Note also that the rule <code>powerOn</code> has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The other two rules implicitly have period 1 - they run at every clock tick.</p>
-<h2 id="big-gaping-holes-in-this-example">Big Gaping Holes in This Example</h2>
+<h1 id="big-gaping-holes-in-this-example">Big Gaping Holes in This Example</h1>
 <p>Things I still have not touched:</p>
 <ol style="list-style-type: decimal">
 <li>Phases (in any useful sense)</li>

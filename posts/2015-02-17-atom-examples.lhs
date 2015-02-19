@@ -42,7 +42,12 @@ Lee Pike in his link refers to Atom as a [synchronous language][]: one specifies
 Example
 ====
 
-This post's [source code][] is a Literate Haskell file, so you may run it directly. Only `cabal install atom` should be needed.  I explain the source in a little more detail below.
+This post's [source code][] is a Literate Haskell file, so you may run it directly. Only `cabal install atom` should be needed.  The source code gives an example Atom specification which does two things:
+
+1. Keeps track of a global clock in seconds.
+2. Monitors a sensor periodically via some external function calls, and performs some action whenever the sensor's value exceeds a threshold.
+
+The rest of the source code is for configuration and interfacing with the Atom compiler.
 
 Standard Boilerplate
 ----
@@ -97,7 +102,7 @@ The Hackage documentation defines `cCode` and `hCode` better, including the argu
 >   , unlines [ "// ---- End automatically-generated header ----"
 >             ])
 
-Actual Atom
+Top-level (`example`) Rule
 ----
 
 Finally, I may describe the actual code that does something. Here is `example`, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named [Language.Atom.Language.Atom](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html) monad, which "captures variable and transition rule declarations."
@@ -112,6 +117,9 @@ Finally, I may describe the actual code that does something. Here is `example`, 
 >     printStrLn "Sensor value over threshold!"
 
 I define both `tickSecond` and `checkSensor` below. The arguments to `checkSensor` are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.
+
+`tickSecond` Rule
+----
 
 > tickSecond :: Atom (V Word64)
 > tickSecond = do
@@ -129,6 +137,8 @@ I mentioned *base rate of the system.* That base rate is the rate at which I cal
 
 I give the sub-rule a unique name ("second"), and the sub-rule is responsible for incrementing `clock` via [incr](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr), once per second.
 
+`checkSensor` Rule
+----
 Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:
 
 1. Power it on via a C call `sensor_on`.
@@ -175,7 +185,7 @@ I use a few new constructs here:
 Note also that the rule `powerOn` has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The other two rules implicitly have period 1 - they run at every clock tick.
 
 Big Gaping Holes in This Example
-----
+====
 Things I still have not touched:
 
 1. Phases (in any useful sense)
