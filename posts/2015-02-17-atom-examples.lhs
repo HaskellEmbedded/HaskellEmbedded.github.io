@@ -191,6 +191,36 @@ I use a few new constructs here:
 
 Note also that the rule `powerOn` has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The other two rules implicitly have period 1 - they run at every clock tick.
 
+Atom Compiler Output
+----
+If you build this code and run it, it will generate code and output a schedule report from [reportSchedule](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule):
+
+```
+Rule Scheduling Report
+
+Period  Phase  Exprs  Rule
+------  -----  -----  ----
+  1000      0      4  atom_example.second
+  2000    500      4  atom_example.check_sensor.powerOn
+     1      0      6  atom_example.check_sensor.trigger
+     1      0      8  atom_example.check_sensor.checkSensorValue
+               -----
+                  22
+
+Hierarchical Expression Count
+
+  Total   Local     Rule
+  ------  ------    ----
+      22       0    atom_example
+      18       0      check_sensor
+       8       8        checkSensorValue
+       4       4        powerOn
+       6       6        trigger
+       4       4      second
+```
+
+This should look familiar - it is the rule names and hierarchy starting at `atom_example`.
+
 Big Gaping Holes in This Example
 ====
 Things I still have not touched:
