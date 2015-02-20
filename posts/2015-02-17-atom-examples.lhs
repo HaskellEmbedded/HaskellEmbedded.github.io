@@ -245,15 +245,17 @@ I attempt to do this below:
 I use a few new constructs here:
 
 - *External variables:* I introduce `ready` using [bool'](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-), tying it to an external C variable `g_sensor_ready` (and likewise `sensorValue` to `g_sensor_value` using [word16'](hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-)).
-- *External calls:* I call several external C functions using [call](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:call). If you refer to their prototypes in the *Pre & Post Code* section, they are all `void` functions taking no arguments, and as far as I know, Atom handles only this sort of external call.
+- *External calls:* I call several external C functions using [call](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:call). If you refer to their prototypes in the *Pre & Post Code* section, they are all `void` functions taking no arguments.
 - *Timers:* `warmup` is a [Timer](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#t:Timer) which I use to count down 10 ticks (10 milliseconds) from the time of powering on the sensor (see [startTimer](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#v:startTimer) in the `powerOn` rule).
 - *Conditionals:* The rule `trigger` makes use of [cond](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond) and [&&.](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#v:-38--38-.) to execute once that timer has finished, given that the sensor is on and has *not* been triggered. The other rules besides `powerOn` use [cond](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond) in similar ways.
 
 Note that the rule `powerOn` has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The rules `trigger` and `checkSensorValue` implicitly have period 1 - they run at every clock tick. `powerOff` has the same period and a phase 50 ticks (50 milliseconds) after.
 
-While `atom "check_sensor"` at the top may not (as I understand it) be strictly necessary here, that call to [atom](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom) defines this whole thing as a sub-rule, and this hierarchy will emerge in the organization and identifiers in the generated code.
+The *External calls* note above also bears further examination. I mention that all the functions are of type `void f(void)`. Atom directly handles only this type of external call, as far as I know, and I suspect that this is by design. Any communication with external code, then, must be through variables - no function parameters, no return values, no callbacks.
 
-Do you recall the end of [Introduction](#intro) saying that Atom is a [synchronous language][]? Note carefully that  [atom](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom) creates a node with an *atomic rule*, and treat everything inside of it as happening simultaneously. The sub-sub-rule `checkThreshold` inside of `checkSensorValue` must be separated with `atom` if its conditions are separate.
+Also, do you recall the end of [Introduction](#intro) saying that Atom is a [synchronous language][]? Note carefully that  [atom](http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom) creates a node with an *atomic rule*, and treat everything inside of it as happening simultaneously. Because of this, the sub-sub-rule `checkThreshold` inside of `checkSensorValue` must be separated with `atom` if its conditions are separate.
+
+The `atom "check_sensor"` at the top may not be strictly necessary as it has only more `atom` nodes beneath it. However, this hierarchy will emerge in the organization and identifiers in the generated code.
 
 Atom Compiler Output {#output}
 ----
