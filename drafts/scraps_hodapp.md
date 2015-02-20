@@ -23,3 +23,15 @@ Links to cover:
 - http://techoverflow.net/blog/2014/07/28/using-quasiquotation-for-more-readable-atom-code/
 - http://techoverflow.net/blog/2014/07/28/yet-another-atom-arduino-blinker/
 
+Big Gaping Holes in This Example
+====
+Things I still have not touched:
+
+1. Phases (in any useful sense)
+2. Probes
+3. Assertions
+4. Coverage checking
+5. What the Atom compiler outputs
+6. What generated code looks like
+7. Periods overriding later periods
+8. The practical notion that you can apply periods and phases to entire sub-rules if you like
