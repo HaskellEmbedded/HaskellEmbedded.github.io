@@ -5,7 +5,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - Examples for the Atom library (DRAFT)</title>
+        <title>Haskell Embedded Blog - Examples for the Atom library</title>
         <link href="../css/bootstrap.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <!-- syntax.css is Pandoc's syntax.css file, copied from:
@@ -45,7 +45,7 @@
         </div>
 
         <div id="content">
-            <h1>Examples for the Atom library (DRAFT)</h1>
+            <h1>Examples for the Atom library</h1>
 
             <div class="info">
     Posted on February 17, 2015
@@ -54,7 +54,7 @@
     
 </div>
 
-<p>In the <a href="./2015-02-06-how-i-got-here.html">last post</a> I talked briefly about <a href="http://hackage.haskell.org/package/atom" title="atom: A DSL for embedded hard realtime applications. (hackage)">Atom</a>, a Haskell EDSL from <a href="http://tomahawkins.org/">Tom Hawkins</a> for hard realtime embedded software. I hope to go into a little more detail here.</p>
+<p>In the <a href="./2015-02-06-how-i-got-here.html">last post</a> I talked briefly about Atom (<a href="http://hackage.haskell.org/package/atom" title="atom: A DSL for embedded hard realtime applications. (hackage)">hackage</a> &amp; <a href="https://github.com/tomahawkins/atom" title="atom: A DSL for embedded hard realtime applications. (github)">github</a>), a Haskell EDSL from <a href="http://tomahawkins.org/">Tom Hawkins</a> for hard realtime embedded software. I aim here to cover more detail.</p>
 <h1 id="background">Background</h1>
 <p>As that post mentioned, I was running into problems handling concurrency in software for my embedded target (a <a href="https://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF51822">Nordic nRF51822</a>). My embedded software had operations throughout that required some fairly specific timing, for instance:</p>
 <ol style="list-style-type: decimal">
@@ -69,7 +69,7 @@
 </ol>
 <p>This was simple enough, except that the processor had to share a dozen similar processes simultaneously. The delay function could delay precisely, but by busy-looping, blocking other execution and wasting power, a precious resource here. Timer callbacks and state machines could share execution delay for longer periods, but at the cost of extra complexity.</p>
 <p>I looked at a variety of solutions which implemented schedulers that ran directly on the target, but nearly all of them appeared to either interfere with Nordic’s firmware or require too extensive of an implementation. The one that I finally could port, <a href="http://www.cocoos.net/intro.html">cocoOS</a>, had the rather show-stopping issue that its primitives were simply using more resources than I had available.</p>
-<h1 id="introduction-to-atom">Introduction to Atom</h1>
+<h1 id="intro">Introduction to Atom</h1>
 <p>At this point I started looking at Atom. Its documentation is a bit lacking, and with no updates on its Hackage page in 2 years, I expect no change in that - which is a shame, because this is substantial industry work that was open-sourced. I’m slowly understanding it from what I can find, mainly:</p>
 <ul>
 <li>Hackage documentation:
@@ -86,8 +86,8 @@
 <li>two now-offline blog posts from John Van Enk at blog.sw17ch.com, <a href="https://web.archive.org/web/20110812162216/http://blog.sw17ch.com/wordpress/?p=84" title="Atom &amp; Arduino : Some Hacking (pt. 1). Van Enk, J. (2009).">Atom &amp; Arduino : Some Hacking (pt. 1)</a> and <a href="https://web.archive.org/web/20110812162107/http://blog.sw17ch.com/wordpress/?p=111" title="Atom &amp; Arduino : First Program (pt. 2). Van Enk, J. (2009).">Atom &amp; Arduino : First Program (pt. 2)</a></li>
 <li><a href="https://github.com/eightyeight/atom-msp430">atom-msp430</a>, 3rd-party code for interfacing with MSP430 microcontrollers.</li>
 </ul>
-<p>Atom’s approach is a bit different than anything I’d mentioned in the prior section. As Hawkins’ slides mention at page 12, Atom’s compiler handles scheduling and synchronization, avoiding the need for locks, semaphores, or any kind of scheduling at run-time. As a Haskell EDSL, it also moves the abstraction up into Haskell rather than trying to make abstractions accessible from C, and that is not a trivial benefit.</p>
-<p>Lee Pike in his link refers to Atom as a <a href="https://en.wikipedia.org/wiki/Synchronous_programming_language">synchronous language</a>: one specifies rules that fire on clock ticks, and state changes are atomic. This is good to bear in mind when understanding Atom definitions.</p>
+<p>Atom’s approach is a bit different than anything I’d mentioned in the prior section. As Hawkins’ slides mention at page 12, Atom’s compiler handles scheduling and synchronization, avoiding the need for locks, semaphores, or any kind of scheduling at run-time. As a Haskell EDSL, it also moves the abstraction up into Haskell rather than trying to make abstractions accessible from C, and that is not a trivial benefit. To be clear: Atom’s compiler produces C source code from a specification in its Haskell EDSL.</p>
+<p>Lee Pike in his link refers to Atom as a <a href="https://en.wikipedia.org/wiki/Synchronous_programming_language">synchronous language</a>: one specifies rules that fire on clock ticks, and state changes are atomic. Bear this in mind when understanding Atom definitions.</p>
 <h1 id="example">Example</h1>
 <p>This post’s <a href="./2015-02-17-atom-examples.lhs">source code</a> is a Literate Haskell file, so you may run it directly. Only <code>cabal install atom</code> should be needed. The source code gives an example Atom specification which does two things:</p>
 <ol style="list-style-type: decimal">
@@ -95,7 +95,7 @@
 <li>Monitors a sensor periodically via some external function calls, and performs some action whenever the sensor’s value exceeds a threshold.</li>
 </ol>
 <p>The rest of the source code is for configuration and interfacing with the Atom compiler.</p>
-<h2 id="standard-boilerplate">Standard Boilerplate</h2>
+<h2 id="boilerplate">Standard Boilerplate</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span> <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
 <span class="ot">&gt;</span> 
 <span class="ot">&gt;</span> <span class="kw">import </span><span class="dt">Language.Atom</span>
@@ -106,12 +106,12 @@
 <span class="ot">&gt;</span> main <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>    (sched, _, _, _, _) <span class="ot">&lt;-</span> compile <span class="st">&quot;atom_example&quot;</span> atomCfg example
 <span class="ot">&gt;</span>    putStrLn <span class="fu">$</span> reportSchedule sched</code></pre>
-<p><code>main</code> just runs the Atom compiler via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:compile">Language.Atom.Compile.compile</a>. The function below will produce C source code in <code>atom_example.c</code> and <code>atom_example.h</code>, and it will call <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule">reportSchedule</a> to output some (maybe) meaningful information.</p>
-<p><code>example</code> is the important part and it’s defined a few sections below.</p>
-<h2 id="configuration">Configuration</h2>
-<p><code>atomCfg</code> gives some code generation configuration via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config">Language.Atom.Code.Config</a>. Most items here have sane defaults and are out of scope for this example; we turn off rule coverage checking with <code>cRuleCoverage</code>. I define two optional ones that are quite important in the generated code:</p>
+<p><code>main</code> just runs the Atom compiler via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:compile">Language.Atom.Compile.compile</a>. The function below produces C source code in <code>atom_example.c</code> and <code>atom_example.h</code>, and it calls <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule">reportSchedule</a> to output some (maybe) meaningful information. (More on this is later on in <a href="#output">Atom Compiler Output</a>.)</p>
+<p>I define the important part, <code>example</code>, a few sections below.</p>
+<h2 id="config">Configuration</h2>
+<p><code>atomCfg</code> gives some code generation configuration via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config">Language.Atom.Code.Config</a>. Most items here have sane defaults and are out of scope for this example; I turn off rule coverage checking with <code>cRuleCoverage</code>. I define two optional ones that are quite important in the generated code:</p>
 <ul>
-<li><code>cFuncName</code> is the name of the top-level C function that must be called at regular intervals, such as by a timer interrupt.</li>
+<li><code>cFuncName</code> is the name of a top-level C function you must call at regular intervals, such as by a timer interrupt.</li>
 <li><code>cStateName</code> is the name of a C struct that includes all global state.</li>
 </ul>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; atomCfg ::</span> <span class="dt">Config</span>
@@ -121,39 +121,73 @@
 <span class="ot">&gt;</span>                    , hCode <span class="fu">=</span> prePostHeader
 <span class="ot">&gt;</span>                    , cRuleCoverage <span class="fu">=</span> <span class="dt">False</span>
 <span class="ot">&gt;</span>                    }</code></pre>
-<h2 id="pre-post-code">Pre &amp; Post Code</h2>
-<p>The Hackage documentation defines <code>cCode</code> and <code>hCode</code> better, including the arguments I’m ignoring. This supplies C code that Atom will insert verbatim above and below the generated code and generated headers. For now, I’ve inserted some definitions and prototypes that you will need to implement yourself if you want this code to actually build (and whose purpose I explain later).</p>
+<h2 id="prepost">Pre &amp; Post Code</h2>
+<p>The <a href="(http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config)">Hackage documentation</a> defines <code>cCode</code> and <code>hCode</code> better, including the arguments I’m ignoring. <code>prePostCode</code> (the value of <code>cCode</code>) provides C code that Atom inserts verbatim above and below the generated C code. <code>prePostHeader</code> &amp; <code>hCode</code> are the same thing but for the generated C header.</p>
+<p><em>(As a side note, Shae discovered Uli Köhler’s relevant post at Tech Overflow on a cleaner way of expressing the C code: <a href="http://techoverflow.net/blog/2014/07/28/using-quasiquotation-for-more-readable-atom-code/" title="Using QuasiQuotation for more readable Atom code. Köhler, U. (2014).">Using QuasiQuotation for more readable Atom code</a>)</em></p>
+<p>Below begins a pretty minimal implementation for a <code>main()</code> function and a simulated sensor.</p>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; prePostCode ::</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [(<span class="dt">Name</span>, <span class="dt">Type</span>)] <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
 <span class="ot">&gt;</span> prePostCode _ _ _ <span class="fu">=</span>
 <span class="ot">&gt;</span>   ( unlines [ <span class="st">&quot;// ---- This source is automatically generated by Atom ----&quot;</span>
-<span class="ot">&gt;</span>             , <span class="st">&quot;extern bool g_sensor_ready;&quot;</span>
-<span class="ot">&gt;</span>             , <span class="st">&quot;extern uint16_t g_sensor_value;&quot;</span>
-<span class="ot">&gt;</span>             ]
-<span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;// ---- End automatically-generated source ----&quot;</span>
-<span class="ot">&gt;</span>             ])
-<span class="ot">&gt;</span> 
-<span class="ot">&gt; prePostHeader ::</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [(<span class="dt">Name</span>, <span class="dt">Type</span>)] <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
-<span class="ot">&gt;</span> prePostHeader _ _ _ <span class="fu">=</span>
-<span class="ot">&gt;</span>   ( unlines [ <span class="st">&quot;// ---- This header is automatically generated by Atom ----&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;#include &lt;stdlib.h&gt;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;#include &lt;stdio.h&gt;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;#include &lt;unistd.h&gt;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;bool g_sensor_ready;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;uint16_t g_sensor_value;&quot;</span>
 <span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_on(void);&quot;</span>
 <span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_off(void);&quot;</span>
 <span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_trigger(void);&quot;</span>
-<span class="ot">&gt;</span>             , <span class="st">&quot;void on_sensor_over_threshold(void);&quot;</span>
+<span class="ot">&gt;</span>             ]</code></pre>
+<p><code>main</code> sets up a 1(ish) millisecond timer call to that important <code>atom_tick</code> function set for <code>cFuncName</code> in the <a href="#config">Configuration</a> section:</p>
+<p>(<em>Disclaimer:</em> In any real application, use something like a timer interrupt. This example is meant to be short and functional, and I know of no short POSIX way to get 1 msec timer callbacks, so just accept that it is wildly inaccurate.)</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;int main(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    while (true) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        atom_tick();&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        usleep(1000);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    }&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    return 0;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span></code></pre>
+<p><code>sensor_on()</code> and <code>sensor_off()</code> are no-ops, besides their output:</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_on(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    printf(\&quot;%lu: sensor_on()\\n\&quot;, __global_clock);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_off(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    printf(\&quot;%lu: sensor_off()\\n\&quot;, __global_clock);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span></code></pre>
+<p><code>sensor-trigger()</code> either immediately gets a random value for the sensor value, or around 25% of the time, does nothing:</p>
+<p>(To be realistic this should run in the background somehow, but I am trying to keep this example short.)</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_trigger(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    if (rand() % 4) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        g_sensor_value = rand();&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        g_sensor_ready = true;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        printf(\&quot;%lu: Triggered sensor, value=%u\\n\&quot;,&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;               __global_clock, g_sensor_value);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    }&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;// ---- End automatically-generated source ----&quot;</span>
+<span class="ot">&gt;</span>             ])</code></pre>
+<p>The pre and post section for the header is basically blank:</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; prePostHeader ::</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [(<span class="dt">Name</span>, <span class="dt">Type</span>)] <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
+<span class="ot">&gt;</span> prePostHeader _ _ _ <span class="fu">=</span>
+<span class="ot">&gt;</span>   ( unlines [ <span class="st">&quot;// ---- This header is automatically generated by Atom ----&quot;</span>
 <span class="ot">&gt;</span>             ]
 <span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;// ---- End automatically-generated header ----&quot;</span>
 <span class="ot">&gt;</span>             ])</code></pre>
-<h2 id="top-level-example-rule">Top-level (<em>example</em>) rule</h2>
-<p>Finally, I may describe the actual code that does something. Here is <code>example</code>, my top-level definition that I pass to the Atom compiler. This is the first appearance of the slightly-redundantly-named <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html">Language.Atom.Language.Atom</a> monad, which “captures variable and transition rule declarations.”</p>
+<p><em>(Note that the generated C source does not <code>#include</code> this header - unless you add it yourself in <code>prePostCode</code>.)</em></p>
+<h2 id="toplevelrule">Top-level (<em>example</em>) rule</h2>
+<p>Finally, I may describe <code>example</code>, the top-level Atom specification. This is the first appearance of the slightly-redundantly-named <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html">Language.Atom.Language.Atom</a> monad, which “captures variable and transition rule declarations.”</p>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; example ::</span> <span class="dt">Atom</span> ()
 <span class="ot">&gt;</span> example <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span> 
 <span class="ot">&gt;</span>   clock <span class="ot">&lt;-</span> tickSecond
 <span class="ot">&gt;</span> 
-<span class="ot">&gt;</span>   checkSensor <span class="dv">16384</span> <span class="fu">$</span> <span class="kw">do</span>
-<span class="ot">&gt;</span>     call <span class="st">&quot;on_sensor_over_threshold&quot;</span>
+<span class="ot">&gt;</span>   checkSensor <span class="dv">40000</span> <span class="fu">$</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>     printStrLn <span class="st">&quot;Sensor value over threshold!&quot;</span></code></pre>
-<p>I define both <code>tickSecond</code> and <code>checkSensor</code> below. The arguments to <code>checkSensor</code> are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.</p>
-<h2 id="ticksecond-sub-rule"><em>tickSecond</em> sub-rule</h2>
+<p>I define <code>tickSecond</code> and <code>checkSensor</code> below. The arguments to <code>checkSensor</code> are, respectively, a sensor threshold, and an action to trigger if the sensor exceeds that threshold - more on this later.</p>
+<h2 id="ticksecond"><em>tickSecond</em> sub-rule</h2>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; tickSecond ::</span> <span class="dt">Atom</span> (<span class="dt">V</span> <span class="dt">Word64</span>)
 <span class="ot">&gt;</span> tickSecond <span class="fu">=</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>   clock <span class="ot">&lt;-</span> word64 <span class="st">&quot;clock_sec&quot;</span> <span class="dv">0</span>
@@ -162,12 +196,12 @@
 <p>Note a few new things:</p>
 <ul>
 <li>I define <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word64">word64</a>, which introduces a local variable, an unsigned 64-bit integer. “clock_sec” is a C name - more specifically, the field name inside the struct above whose name I set with <code>cStateName</code>. 0 is an initial value.</li>
-<li>I’ve defined a sub-rule with <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:period">period</a> which executes at 1 / 1000 of the base rate of the system. I’ve also used <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:exactPhase">exactPhase</a> to dictate that it runs first in that period (i.e. at <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:phase">phase</a> 0).</li>
+<li>I define a sub-rule with <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:period">period</a> which executes at 1 / 1000 of the base rate of the system. I also use <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:exactPhase">exactPhase</a> to dictate that it runs first in that period (i.e. at <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:phase">phase</a> 0).</li>
 <li>I return <code>clock</code> in the monad. Its <code>V Word64</code> type wraps a standard Haskell <code>Data.Word.Word64</code>.</li>
 </ul>
-<p>I mentioned <em>base rate of the system.</em> That base rate is the rate at which I call <code>atom_tick</code> (the function set earlier with <code>cFuncName</code>). I intend to write the C code to call it at intervals of 1 millisecond. Thus, the sub-rule above executes at 1 / 1000 of this - once every second.</p>
-<p>I give the sub-rule a unique name (“second”), and the sub-rule is responsible for incrementing <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr">incr</a>, once per second.</p>
-<h2 id="checksensor-sub-rule"><em>checkSensor</em> sub-rule</h2>
+<p>I mentioned <em>base rate of the system.</em> That base rate is the rate at which the C code calls <code>atom_tick</code> (the function set earlier with <code>cFuncName</code>) - nominally, once per millisecond. Thus, the sub-rule above executes at 1 / 1000 of this - once every second.</p>
+<p>I give the sub-rule a unique name (“second”), and the sub-rule then increments <code>clock</code> via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:incr">incr</a>, once per second.</p>
+<h2 id="checksensor"><em>checkSensor</em> sub-rule</h2>
 <p>Next, suppose I have a sensor I want to monitor, but getting a sensor measurement is a process like this:</p>
 <ol style="list-style-type: decimal">
 <li>Power it on via a C call <code>sensor_on</code>.</li>
@@ -175,76 +209,132 @@
 <li>Trigger a measurement via a C call <code>sensor_trigger</code>.</li>
 <li>Wait for some external variable <code>g_sensor_ready</code> to indicate true.</li>
 <li>Receive our result in another external variable, <code>g_sensor_value</code>.</li>
-<li>Power the sensor off via <code>sensor_off</code>.</li>
+<li>If, 50 milliseconds after step (2), no measurement has arrived, power the sensor off via <code>sensor_off</code>.</li>
 </ol>
 <p>Suppose, also, we want a threshold value and an action to take if the sensor exceeds that threshold.</p>
 <p>I attempt to do this below:</p>
 <pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; checkSensor ::</span> <span class="dt">Word16</span> <span class="ot">-&gt;</span> <span class="dt">Atom</span> () <span class="ot">-&gt;</span> <span class="dt">Atom</span> ()
-<span class="ot">&gt;</span> checkSensor threshold action <span class="fu">=</span> atom <span class="st">&quot;check_sensor&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span> checkSensor threshold overThresholdAction <span class="fu">=</span> atom <span class="st">&quot;check_sensor&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>   ready <span class="ot">&lt;-</span> return <span class="fu">$</span> bool' <span class="st">&quot;g_sensor_ready&quot;</span>
-<span class="ot">&gt;</span>   sensor_value <span class="ot">&lt;-</span> return <span class="fu">$</span> word16' <span class="st">&quot;g_sensor_value&quot;</span>
+<span class="ot">&gt;</span>   sensorValue <span class="ot">&lt;-</span> return <span class="fu">$</span> word16' <span class="st">&quot;g_sensor_value&quot;</span>
 <span class="ot">&gt;</span>   warmup <span class="ot">&lt;-</span> timer <span class="st">&quot;warmup&quot;</span>
+<span class="ot">&gt;</span>   triggered <span class="ot">&lt;-</span> bool <span class="st">&quot;triggered&quot;</span> <span class="dt">False</span>
+<span class="ot">&gt;</span>   sensorOn <span class="ot">&lt;-</span> bool <span class="st">&quot;sensor_on&quot;</span> <span class="dt">False</span>
 <span class="ot">&gt;</span> 
 <span class="ot">&gt;</span>   period <span class="dv">2000</span> <span class="fu">$</span> phase <span class="dv">500</span> <span class="fu">$</span> atom <span class="st">&quot;powerOn&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>     call <span class="st">&quot;sensor_on&quot;</span>
+<span class="ot">&gt;</span>     triggered <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     sensorOn <span class="fu">&lt;==</span> true
 <span class="ot">&gt;</span>     startTimer warmup <span class="fu">$</span> <span class="dt">Const</span> <span class="dv">10</span>
 <span class="ot">&gt;</span>   
 <span class="ot">&gt;</span>   atom <span class="st">&quot;trigger&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
-<span class="ot">&gt;</span>     cond <span class="fu">$</span> timerDone warmup
-<span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     cond <span class="fu">$</span> timerDone warmup <span class="fu">&amp;&amp;.</span> not_ (value triggered) <span class="fu">&amp;&amp;.</span> value sensorOn
+<span class="ot">&gt;</span>     triggered <span class="fu">&lt;==</span> true
 <span class="ot">&gt;</span>     call <span class="st">&quot;sensor_trigger&quot;</span>
 <span class="ot">&gt;</span>     
 <span class="ot">&gt;</span>   atom <span class="st">&quot;checkSensorValue&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
 <span class="ot">&gt;</span>     cond <span class="fu">$</span> value ready
 <span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     sensorOn <span class="fu">&lt;==</span> false
 <span class="ot">&gt;</span>     call <span class="st">&quot;sensor_off&quot;</span>
-<span class="ot">&gt;</span>     cond <span class="fu">$</span> value sensor_value <span class="fu">&gt;.</span> <span class="dt">Const</span> threshold
-<span class="ot">&gt;</span>     action</code></pre>
-<p>While <code>atom &quot;check_sensor&quot;</code> may not (as I understand it) be strictly necessary here, that call to <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom">atom</a> defines this whole thing as a sub-rule, and this hierarchy will emerge in the organization and identifiers in the generated code.</p>
+<span class="ot">&gt;</span>     atom <span class="st">&quot;checkThreshold&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>       cond <span class="fu">$</span> value sensorValue <span class="fu">&gt;.</span> <span class="dt">Const</span> threshold
+<span class="ot">&gt;</span>       overThresholdAction
+<span class="ot">&gt;</span>   
+<span class="ot">&gt;</span>   period <span class="dv">2000</span> <span class="fu">$</span> phase <span class="dv">550</span> <span class="fu">$</span> atom <span class="st">&quot;powerOff&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     cond <span class="fu">$</span> value sensorOn
+<span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     printStrLn <span class="st">&quot;Sensor timeout.&quot;</span>
+<span class="ot">&gt;</span>     call <span class="st">&quot;sensor_off&quot;</span></code></pre>
+<p>(<em>Another disclaimer:</em> In a real application, you should probably avoid things like <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Unit.html#v:printStrLn"><code>printStrLn</code></a> that may block indefinitely for I/O.)</p>
 <p>I use a few new constructs here:</p>
 <ul>
-<li><em>External variables:</em> I introduce <code>ready</code> using <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-">bool’</a>, tying it to an external C variable <code>g_sensor_ready</code> (and likewise <code>sensor_value</code> to <code>g_sensor_value</code> using <a href="hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-">word16’</a>).</li>
+<li><em>External variables:</em> I introduce <code>ready</code> using <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:bool-39-">bool’</a>, tying it to an external C variable <code>g_sensor_ready</code> (and likewise <code>sensorValue</code> to <code>g_sensor_value</code> using <a href="hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:word16-39-">word16’</a>).</li>
 <li><em>External calls:</em> I call several external C functions using <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:call">call</a>. If you refer to their prototypes in the <em>Pre &amp; Post Code</em> section, they are all <code>void</code> functions taking no arguments, and as far as I know, Atom handles only this sort of external call.</li>
 <li><em>Timers:</em> <code>warmup</code> is a <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#t:Timer">Timer</a> which I use to count down 10 ticks (10 milliseconds) from the time of powering on the sensor (see <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Common.html#v:startTimer">startTimer</a> in the <code>powerOn</code> rule).</li>
-<li><em>Conditionals:</em> The rule <code>trigger</code> makes use of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond">cond</a> to execute only when that timer has finished. The rule <code>checkSensorValue</code> likewise uses it to execute only when the measurement is ready, and to execute <code>action</code> only when the value exceeds the threshold.</li>
+<li><em>Conditionals:</em> The rule <code>trigger</code> makes use of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond">cond</a> and <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#v:-38--38-.">&amp;&amp;.</a> to execute once that timer has finished, given that the sensor is on and has <em>not</em> been triggered. The other rules besides <code>powerOn</code> use <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:cond">cond</a> in similar ways.</li>
 </ul>
-<p>Note also that the rule <code>powerOn</code> has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The other two rules implicitly have period 1 - they run at every clock tick.</p>
-<h2 id="atom-compiler-output">Atom Compiler Output</h2>
-<p>If you build this code and run it, it will generate code and output a schedule report from <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule">reportSchedule</a>:</p>
-<pre><code>Rule Scheduling Report
+<p>Note that the rule <code>powerOn</code> has period 2000 and phase 500: It runs every 2 seconds, offset by 1/2 second. The rules <code>trigger</code> and <code>checkSensorValue</code> implicitly have period 1 - they run at every clock tick. <code>powerOff</code> has the same period and a phase 50 ticks (50 milliseconds) after.</p>
+<p>While <code>atom &quot;check_sensor&quot;</code> at the top may not (as I understand it) be strictly necessary here, that call to <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom">atom</a> defines this whole thing as a sub-rule, and this hierarchy will emerge in the organization and identifiers in the generated code.</p>
+<p>Do you recall the end of <a href="#intro">Introduction</a> saying that Atom is a <a href="https://en.wikipedia.org/wiki/Synchronous_programming_language">synchronous language</a>? Note carefully that <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:atom">atom</a> creates a node with an <em>atomic rule</em>, and treat everything inside of it as happening simultaneously. The sub-sub-rule <code>checkThreshold</code> inside of <code>checkSensorValue</code> must be separated with <code>atom</code> if its conditions are separate.</p>
+<h2 id="output">Atom Compiler Output</h2>
+<p>Build the code and run it to generate the code and output a schedule report from <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Compile.html#v:reportSchedule">reportSchedule</a>:</p>
+<pre><code>$ ghc --make 2015-02-17-atom-examples.lhs
+[1 of 1] Compiling Main             ( 2015-02-17-atom-examples.lhs, 2015-02-17-atom-examples.o )
+Linking 2015-02-17-atom-examples ...
+$ ./2015-02-17-atom-examples
+Rule Scheduling Report
 
 Period  Phase  Exprs  Rule
 ------  -----  -----  ----
   1000      0      4  atom_example.second
-  2000    500      4  atom_example.check_sensor.powerOn
-     1      0      6  atom_example.check_sensor.trigger
-     1      0      8  atom_example.check_sensor.checkSensorValue
+  2000    500      5  atom_example.check_sensor.powerOn
+  2000    550      4  atom_example.check_sensor.powerOff
+     1      0     14  atom_example.check_sensor.trigger
+     1      0      5  atom_example.check_sensor.checkSensorValue.checkThreshold
+     1      0      5  atom_example.check_sensor.checkSensorValue
                -----
-                  22
+                  37
 
 Hierarchical Expression Count
 
   Total   Local     Rule
   ------  ------    ----
-      22       0    atom_example
-      18       0      check_sensor
-       8       8        checkSensorValue
-       4       4        powerOn
-       6       6        trigger
-       4       4      second</code></pre>
-<p>This should look familiar - it is the rule names and hierarchy starting at <code>atom_example</code>.</p>
-<h1 id="big-gaping-holes-in-this-example">Big Gaping Holes in This Example</h1>
-<p>Things I still have not touched:</p>
-<ol style="list-style-type: decimal">
-<li>Phases (in any useful sense)</li>
+      37       0    atom_example
+      33       0      check_sensor
+      10       5        checkSensorValue
+       5       5          checkThreshold
+       4       4        powerOff
+       5       5        powerOn
+      14      14        trigger
+       4       4      second
+</code></pre>
+<p>This should look familiar - it is the rule names and hierarchy starting at <code>atom_example</code>. It should have produced <code>atom_example.c</code> and <code>atom_example.h</code> as well, which you may build and run:</p>
+<pre><code>$ gcc -o atom_example.o atom_example.c
+$ ./atom_example.o
+500: sensor_on()
+510: Triggered sensor, value=9158
+510: sensor_off()
+2500: sensor_on()
+2510: Triggered sensor, value=18547
+2510: sensor_off()
+4500: sensor_on()
+4510: Triggered sensor, value=23807
+4510: sensor_off()
+6500: sensor_on()
+6510: Triggered sensor, value=22764
+6510: sensor_off()
+8500: sensor_on()
+8510: Triggered sensor, value=31949
+8510: sensor_off()
+10500: sensor_on()
+10510: Triggered sensor, value=55211
+Sensor value over threshold!
+10510: sensor_off()
+12500: sensor_on()
+12510: Triggered sensor, value=7931
+12510: sensor_off()
+14500: sensor_on()
+14510: Triggered sensor, value=57670
+Sensor value over threshold!
+14510: sensor_off()
+16500: sensor_on()
+Sensor timeout.
+16550: sensor_off()
+18500: sensor_on()
+18510: Triggered sensor, value=2132
+18510: sensor_off()
+...</code></pre>
+<p>Most lines begin with a number which is the global clock.</p>
+<h1 id="closing">Closing</h1>
+<p>Hopefully, this provided a meaningful introduction. In following posts I hope to cover some other aspects of Atom, such as:</p>
+<ul>
 <li>Probes</li>
 <li>Assertions</li>
 <li>Coverage checking</li>
-<li>What the Atom compiler outputs</li>
-<li>What generated code looks like</li>
-<li>Periods overriding later periods</li>
-<li>The practical notion that you can apply periods and phases to entire sub-rules if you like</li>
-</ol>
+<li>Internals of generated code</li>
+</ul>
 
         </div>
         <div id="footer">
