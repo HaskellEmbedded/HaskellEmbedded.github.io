@@ -53,6 +53,11 @@
         by Chris Hodapp
     
 </div>
+<div class="info">
+    
+    Tags: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/atom.html">atom</a>, <a href="../tags/ivory.html">ivory</a>, <a href="../tags/copilot.html">copilot</a>, <a href="../tags/idris.html">idris</a>, <a href="../tags/sbv.html">sbv</a>, <a href="../tags/python.html">python</a>
+    
+</div>
 
 <p>One work project since near the begining of 2014 has been the design of an embedded system for which power usage and stability are two primary concerns. It’s not controlling an airplane or a nuclear plant - malfunctions will not be catastrophic - but stability still matters.</p>
 <p>My boss had decided that for various reasons too numerous and extensive to list here, we needed to have support for Bluetooth Low Energy. Our system at the time ran on the venerable TI MSP430 and I started looking at ways to support BLE from this. All of TI’s BLE offerings at the time ran on the 8051 and appeared to require proprietary toolchains. After surveying what else was available, we had eventually decided on the <a href="https://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF51822">Nordic nRF51822</a>, a microcontroller based on an ARM Cortex-M0, supported by standard GCC, and providing all the necessary peripherals for BLE - and simply eliminated the MSP430 altogether.</p>
