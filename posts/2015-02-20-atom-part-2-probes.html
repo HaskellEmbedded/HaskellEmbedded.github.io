@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Haskell Embedded Blog - Atom, part 2: Probes</title>
+        <link href="../css/bootstrap.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <!-- syntax.css is Pandoc's syntax.css file, copied from:
+             https://github.com/jaspervdj/hakyll/blob/master/web/css/syntax.css
+          -->
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+
+        <link rel="apple-touch-icon" sizes="57x57" href="../apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="../apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="../apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="../apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="../apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="../apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="../apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="../apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon-180x180.png">
+        <link rel="icon" type="image/png" href="../favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="../android-chrome-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="../favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="../favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="../manifest.json">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Haskell Embedded Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Atom, part 2: Probes</h1>
+
+            <div class="info">
+    Posted on February 20, 2015
+    
+        by Chris Hodapp
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/atom.html">atom</a>
+    
+</div>
+
+<h1 id="probes">Probes</h1>
+<p>The <a href="./2015-02-17-atom-examples.html">last post</a> introduced <a href="http://hackage.haskell.org/package/atom" title="atom: A DSL for embedded hard realtime applications. (hackage)">Atom</a> with a simple example that I used to cover the basics. I’m going to extend this to cover <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:probe">probes</a>. Probes are a bit vague. The only explicit information I can find is:</p>
+<ul>
+<li>A <a href="https://stackoverflow.com/questions/1263711/using-haskell-for-sizable-real-time-systems-how-if#answer-1582191" title="Using Haskell for sizable real-time systems: how (if?)?">StackOverflow</a> reply from <a href="http://tomahawkins.org/">Tom Hawkins</a> - Atom’s author, incidentally.</li>
+<li>The Atom source code, <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/src/Language-Atom-Language.html#probe">here</a> and <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/src/Language-Atom-Elaboration.html#elaborate">here</a>.</li>
+</ul>
+<p>Here is my own working definition after some examples: <em>A probe allows inspecting any expression in Atom, remotely to its context, and at any desired rate.</em></p>
+<p>The type signature suggests that inserting a probe is a matter of inserting <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:probe">probe</a> anywhere inside of an Atom specification, along with a probe name and an expression, and that accessing probes is a matter of examining <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:probes">probes</a>.</p>
+<p>The preamble is identical to the prior example:</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt;</span> <span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span>
+<span class="ot">&gt;</span> 
+<span class="ot">&gt;</span> <span class="kw">import </span><span class="dt">Language.Atom</span>
+<span class="ot">&gt;</span> <span class="kw">import </span><span class="dt">Language.Atom.Unit</span>
+<span class="ot">&gt;</span> <span class="kw">import </span><span class="dt">GHC.Word</span>
+<span class="ot">&gt;</span> <span class="kw">import </span><span class="dt">GHC.Int</span>
+<span class="ot">&gt;</span> 
+<span class="ot">&gt; main ::</span> <span class="dt">IO</span> ()
+<span class="ot">&gt;</span> main <span class="fu">=</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>    (sched, _, _, _, _) <span class="ot">&lt;-</span> compile <span class="st">&quot;atom_example2&quot;</span> atomCfg example
+<span class="ot">&gt;</span>    putStrLn <span class="fu">$</span> reportSchedule sched
+<span class="ot">&gt;</span> 
+<span class="ot">&gt; atomCfg ::</span> <span class="dt">Config</span>
+<span class="ot">&gt;</span> atomCfg <span class="fu">=</span> defaults { cFuncName <span class="fu">=</span> <span class="st">&quot;atom_tick&quot;</span>
+<span class="ot">&gt;</span>                    , cStateName <span class="fu">=</span> <span class="st">&quot;state_example&quot;</span>
+<span class="ot">&gt;</span>                    , cCode <span class="fu">=</span> prePostCode
+<span class="ot">&gt;</span>                    , hCode <span class="fu">=</span> prePostHeader
+<span class="ot">&gt;</span>                    , cRuleCoverage <span class="fu">=</span> <span class="dt">False</span>
+<span class="ot">&gt;</span>                    }</code></pre>
+<p>In the last post I ignored the arguments to the functions set in <code>cCode</code> and <code>hCode</code> in <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config">Config</a>. The third argument is a list of probes along with their types.</p>
+<p>The below code is identical, save for three changes:</p>
+<ul>
+<li>The definition of <code>probeStr</code> which turns a probe name &amp; type into a String.</li>
+<li>Assigning a name <code>probeList</code> to the <code>[(Name,Type)]</code> argument in <code>prePostCode</code>.</li>
+<li>Appending <code>map probeStr probeList</code> to the list. This serves no functional purpose, it just adds comments into the code to illustrate what probes are present.</li>
+</ul>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; probeStr ::</span> (<span class="dt">Name</span>, <span class="dt">Type</span>) <span class="ot">-&gt;</span> <span class="dt">String</span>
+<span class="ot">&gt;</span> probeStr (n, t) <span class="fu">=</span> <span class="st">&quot;// Probe: &quot;</span> <span class="fu">++</span> n <span class="fu">++</span> <span class="st">&quot;, type: &quot;</span> <span class="fu">++</span> show t
+<span class="ot">&gt;</span> 
+<span class="ot">&gt; prePostCode ::</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [(<span class="dt">Name</span>, <span class="dt">Type</span>)] <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
+<span class="ot">&gt;</span> prePostCode _ _ probeList <span class="fu">=</span>
+<span class="ot">&gt;</span>   ( unlines <span class="fu">$</span> [ <span class="st">&quot;// ---- This source is automatically generated by Atom ----&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;#include &lt;stdlib.h&gt;&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;#include &lt;stdio.h&gt;&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;#include &lt;unistd.h&gt;&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;bool g_sensor_ready;&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;uint16_t g_sensor_value;&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;void sensor_on(void);&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;void sensor_off(void);&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;void sensor_trigger(void);&quot;</span>
+<span class="ot">&gt;</span>               , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>               ] <span class="fu">++</span> map probeStr probeList
+<span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;int main(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    while (true) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        atom_tick();&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        usleep(1000);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    }&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    return 0;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_on(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    printf(\&quot;%lu: sensor_on()\\n\&quot;, __global_clock);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_off(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    printf(\&quot;%lu: sensor_off()\\n\&quot;, __global_clock);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;void sensor_trigger(void) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    if (rand() % 4) {&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        g_sensor_value = rand();&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        g_sensor_ready = true;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;        printf(\&quot;%lu: Triggered sensor, value=%u\\n\&quot;,&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;               __global_clock, g_sensor_value);&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;    }&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;}&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;&quot;</span>
+<span class="ot">&gt;</span>             , <span class="st">&quot;// ---- End automatically-generated source ----&quot;</span>
+<span class="ot">&gt;</span>             ])
+<span class="ot">&gt;</span> 
+<span class="ot">&gt; prePostHeader ::</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [<span class="dt">Name</span>] <span class="ot">-&gt;</span> [(<span class="dt">Name</span>, <span class="dt">Type</span>)] <span class="ot">-&gt;</span> (<span class="dt">String</span>, <span class="dt">String</span>)
+<span class="ot">&gt;</span> prePostHeader _ _ _ <span class="fu">=</span>
+<span class="ot">&gt;</span>   ( unlines [ <span class="st">&quot;// ---- This header is automatically generated by Atom ----&quot;</span>
+<span class="ot">&gt;</span>             ]
+<span class="ot">&gt;</span>   , unlines [ <span class="st">&quot;// ---- End automatically-generated header ----&quot;</span>
+<span class="ot">&gt;</span>             ])</code></pre>
+<p>I reordered things from the last example to give some simpler definitions first. First I add a probe into <code>tickSecond</code> for the value of <code>clock</code> (which thus far I have not done anything with):</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; tickSecond ::</span> <span class="dt">Atom</span> (<span class="dt">V</span> <span class="dt">Word64</span>)
+<span class="ot">&gt;</span> tickSecond <span class="fu">=</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>   clock <span class="ot">&lt;-</span> word64 <span class="st">&quot;clock_sec&quot;</span> <span class="dv">0</span>
+<span class="ot">&gt;</span>   probe <span class="st">&quot;Clock&quot;</span> <span class="fu">$</span> value clock
+<span class="ot">&gt;</span>   period <span class="dv">1000</span> <span class="fu">$</span> exactPhase <span class="dv">0</span> <span class="fu">$</span> atom <span class="st">&quot;second&quot;</span> <span class="fu">$</span> incr clock
+<span class="ot">&gt;</span>   return clock</code></pre>
+<p>And a probe into <code>checkSensor</code> for the value of <code>sensorValue</code>:</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; checkSensor ::</span> <span class="dt">Word16</span> <span class="ot">-&gt;</span> <span class="dt">Atom</span> () <span class="ot">-&gt;</span> <span class="dt">Atom</span> ()
+<span class="ot">&gt;</span> checkSensor threshold overThresholdAction <span class="fu">=</span> atom <span class="st">&quot;check_sensor&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>   ready <span class="ot">&lt;-</span> return <span class="fu">$</span> bool' <span class="st">&quot;g_sensor_ready&quot;</span>
+<span class="ot">&gt;</span>   sensorValue <span class="ot">&lt;-</span> return <span class="fu">$</span> word16' <span class="st">&quot;g_sensor_value&quot;</span>
+<span class="ot">&gt;</span>   warmup <span class="ot">&lt;-</span> timer <span class="st">&quot;warmup&quot;</span>
+<span class="ot">&gt;</span>   triggered <span class="ot">&lt;-</span> bool <span class="st">&quot;triggered&quot;</span> <span class="dt">False</span>
+<span class="ot">&gt;</span>   sensorOn <span class="ot">&lt;-</span> bool <span class="st">&quot;sensor_on&quot;</span> <span class="dt">False</span>
+<span class="ot">&gt;</span> 
+<span class="ot">&gt;</span>   probe <span class="st">&quot;Sensor Value&quot;</span> <span class="fu">$</span> value sensorValue
+<span class="ot">&gt;</span> 
+<span class="ot">&gt;</span>   period <span class="dv">2000</span> <span class="fu">$</span> phase <span class="dv">500</span> <span class="fu">$</span> atom <span class="st">&quot;powerOn&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     call <span class="st">&quot;sensor_on&quot;</span>
+<span class="ot">&gt;</span>     triggered <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     sensorOn <span class="fu">&lt;==</span> true
+<span class="ot">&gt;</span>     startTimer warmup <span class="fu">$</span> <span class="dt">Const</span> <span class="dv">10</span>
+<span class="ot">&gt;</span>   
+<span class="ot">&gt;</span>   atom <span class="st">&quot;trigger&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     cond <span class="fu">$</span> timerDone warmup <span class="fu">&amp;&amp;.</span> not_ (value triggered) <span class="fu">&amp;&amp;.</span> value sensorOn
+<span class="ot">&gt;</span>     triggered <span class="fu">&lt;==</span> true
+<span class="ot">&gt;</span>     call <span class="st">&quot;sensor_trigger&quot;</span>
+<span class="ot">&gt;</span>     
+<span class="ot">&gt;</span>   atom <span class="st">&quot;checkSensorValue&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     cond <span class="fu">$</span> value ready
+<span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     sensorOn <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     call <span class="st">&quot;sensor_off&quot;</span>
+<span class="ot">&gt;</span>     atom <span class="st">&quot;checkThreshold&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>       cond <span class="fu">$</span> value sensorValue <span class="fu">&gt;.</span> <span class="dt">Const</span> threshold
+<span class="ot">&gt;</span>       overThresholdAction
+<span class="ot">&gt;</span>   
+<span class="ot">&gt;</span>   period <span class="dv">2000</span> <span class="fu">$</span> phase <span class="dv">550</span> <span class="fu">$</span> atom <span class="st">&quot;powerOff&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     cond <span class="fu">$</span> value sensorOn
+<span class="ot">&gt;</span>     ready <span class="fu">&lt;==</span> false
+<span class="ot">&gt;</span>     printStrLn <span class="st">&quot;Sensor timeout.&quot;</span>
+<span class="ot">&gt;</span>     call <span class="st">&quot;sensor_off&quot;</span></code></pre>
+<p>I can access all probes via <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Language.html#v:probes">probes</a>, but given its type signature, some conversion is necessary:</p>
+<pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">probes ::</span> <span class="dt">Atom</span> [(<span class="dt">String</span>, <span class="dt">UE</span>)]</code></pre>
+<p>Primarily, that <code>UE</code> (‘untyped expression’) needs to be turned to something else to be useful. Luckily, <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#v:typeOf">typeOf</a> gives its type as a <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:Type">Language.Atom.Expressions.Type</a>, and then the <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#v:Retype">Retype</a> constructor can convert it accordingly.</p>
+<p>I’m not sure what else I can easily tell Atom to do with an expression, so I just pass it to <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Unit.html#v:printIntegralE">printIntegralE</a>. I’m sure a suitably motivated individual could make more interesting functionality. I come up with this slightly hackish Haskell function for printing a probe’s value:</p>
+<p><em>(Do you have a cleaner version? Show me.)</em></p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; printProbe ::</span> (<span class="dt">String</span>, <span class="dt">UE</span>) <span class="ot">-&gt;</span> <span class="dt">Atom</span> ()
+<span class="ot">&gt;</span> printProbe (str, ue) <span class="fu">=</span> <span class="kw">case</span> typeOf ue <span class="kw">of</span>
+<span class="ot">&gt;</span>   <span class="dt">Int8</span>   <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Int8</span>)
+<span class="ot">&gt;</span>   <span class="dt">Int16</span>  <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Int16</span>)
+<span class="ot">&gt;</span>   <span class="dt">Int32</span>  <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Int32</span>)
+<span class="ot">&gt;</span>   <span class="dt">Int64</span>  <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Int64</span>)
+<span class="ot">&gt;</span>   <span class="dt">Word8</span>  <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Word8</span>)
+<span class="ot">&gt;</span>   <span class="dt">Word16</span> <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Word16</span>)
+<span class="ot">&gt;</span>   <span class="dt">Word32</span> <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Word32</span>)
+<span class="ot">&gt;</span>   <span class="dt">Word64</span> <span class="ot">-&gt;</span> ps (<span class="ot">ru ::</span> <span class="dt">E</span> <span class="dt">Word64</span>)
+<span class="ot">&gt;</span>   <span class="kw">where</span><span class="ot"> ps ::</span> <span class="dt">IntegralE</span> a <span class="ot">=&gt;</span> <span class="dt">E</span> a <span class="ot">-&gt;</span> <span class="dt">Atom</span> ()
+<span class="ot">&gt;</span>         ps <span class="fu">=</span> printIntegralE str
+<span class="ot">&gt;         ru ::</span> <span class="dt">IntegralE</span> a <span class="ot">=&gt;</span> <span class="dt">E</span> a
+<span class="ot">&gt;</span>         ru <span class="fu">=</span> <span class="dt">Retype</span> ue</code></pre>
+<p>Finally, in <code>example</code> I add in a rule <code>monitor</code> to print all the probe values. For sanity’s sake, the period is 100 for a rate of every 1/10 second rather than at the base rate.</p>
+<pre class="sourceCode literate literatehaskell"><code class="sourceCode literatehaskell"><span class="ot">&gt; example ::</span> <span class="dt">Atom</span> ()
+<span class="ot">&gt;</span> example <span class="fu">=</span> <span class="kw">do</span>
+<span class="ot">&gt;</span> 
+<span class="ot">&gt;</span>   clock <span class="ot">&lt;-</span> tickSecond
+<span class="ot">&gt;</span> 
+<span class="ot">&gt;</span>   checkSensor <span class="dv">40000</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     printStrLn <span class="st">&quot;Sensor value over threshold!&quot;</span>
+<span class="ot">&gt;</span> 
+<span class="ot">&gt;</span>   period <span class="dv">100</span> <span class="fu">$</span> atom <span class="st">&quot;monitor&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+<span class="ot">&gt;</span>     mapM_ printProbe <span class="fu">=&lt;&lt;</span> probes</code></pre>
+<p>In the end the monitor C code looks like this:</p>
+<pre class="sourceCode c"><code class="sourceCode c"><span class="co">/* atom_example2.monitor */</span>
+<span class="dt">static</span> <span class="dt">void</span> __r6() {
+  bool __0 = true;
+  <span class="dt">uint16_t</span> __1 = g_sensor_value;
+  <span class="dt">uint64_t</span> __2 = state_example.atom_example2.clock_sec;
+  <span class="kw">if</span> (__0) {
+    printf(<span class="st">&quot;Sensor Value: %i</span><span class="ch">\n</span><span class="st">&quot;</span>, __1);
+    printf(<span class="st">&quot;Clock: %i</span><span class="ch">\n</span><span class="st">&quot;</span>, __2);
+  }
+}</code></pre>
+<p>Fairly simple, but I can see how it would be useful.</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+        <script src="../js/bootstrap.js"></script>
+    </body>
+</html>
