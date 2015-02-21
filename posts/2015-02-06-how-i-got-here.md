@@ -2,6 +2,7 @@
 title: How I Got Here (i.e. to using Haskell for embedded code)
 date: February 6th, 2015
 author: Chris Hodapp
+tags: haskell, atom, ivory, copilot, idris, sbv, python
 ---
 
 One work project since near the begining of 2014 has been the design of an embedded system for which power usage and stability are two primary concerns. It's not controlling an airplane or a nuclear plant - malfunctions will not be catastrophic - but stability still matters.

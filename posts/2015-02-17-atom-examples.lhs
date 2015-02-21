@@ -2,6 +2,7 @@
 title: Examples for the Atom library
 date: February 17, 2015
 author: Chris Hodapp
+tags: haskell, atom
 ---
 
 In the [last post][] I talked briefly about Atom ([hackage][atom-hackage] & [github][atom-github]), a Haskell EDSL from [Tom Hawkins][hawkins] for hard realtime embedded software. I aim here to cover more detail.
