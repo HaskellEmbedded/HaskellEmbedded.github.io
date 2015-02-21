@@ -346,15 +346,15 @@ Most lines begin with a number which is the global clock.
 
 Closing
 ====
-Hopefully, this provided a meaningful introduction. In following posts I hope to cover some other aspects of Atom, such as:
+Hopefully, this provided a meaningful introduction. The [next post] covers how to use probes in Atom. In future  posts I hope to cover some other aspects of Atom, such as:
 
-- Probes
 - Assertions
 - Coverage checking
 - Internals of generated code
 
 [source code]: ./2015-02-17-atom-examples.lhs
 [last post]: ./2015-02-06-how-i-got-here.html
+[next post]: ./2015-02-20-atom-part-2-probes.html
 
 [hawkins]: http://tomahawkins.org/
 [hawkins-hybrids]: http://cufp.galois.com/2008/slides/HawkinsTom.pdf "Controlling Hybrid Vehicles with Haskell. Hawkins, T. (2008)."
