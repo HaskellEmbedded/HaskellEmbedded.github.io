@@ -346,11 +346,7 @@ Most lines begin with a number which is the global clock.
 
 Closing
 ====
-Hopefully, this provided a meaningful introduction. The [next post] covers how to use probes in Atom. In future  posts I hope to cover some other aspects of Atom, such as:
-
-- Assertions
-- Coverage checking
-- Internals of generated code
+Hopefully, this provided a meaningful introduction. The [next post] covers how to use another Atom feature, *probes*.
 
 [source code]: ./2015-02-17-atom-examples.lhs
 [last post]: ./2015-02-06-how-i-got-here.html

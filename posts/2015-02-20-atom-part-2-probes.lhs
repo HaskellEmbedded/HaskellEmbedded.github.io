@@ -203,7 +203,7 @@ static void __r6() {
 
 Fairly simple, but I can see how it would be useful.
 
-[source code]: ./2015-02-20-atom-part-2.lhs
+[source code]: ./2015-02-20-atom-part-2-probes.lhs
 [last post]: ./2015-02-17-atom-examples.html
 [atom-hackage]: http://hackage.haskell.org/package/atom "atom: A DSL for embedded hard realtime applications. (hackage)"
 [atom-github]: https://github.com/tomahawkins/atom "atom: A DSL for embedded hard realtime applications. (github)"

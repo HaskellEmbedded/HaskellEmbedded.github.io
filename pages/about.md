@@ -1,11 +1,22 @@
 ---
 title: About
 ---
+
 Welcome!
 
-This is a blog about embedded systems programming using the Haskell programming language.
+This is a blog about embedded systems development for which the [Haskell](https://www.haskell.org/) language plays a central role. We include here:
+
+- Haskell code compiled for embedded CPUs,
+- Haskell EDSLs and libraries for code generation to an embedded platform (e.g. [Ivory][], [Copilot][], [SBV][], or even [llvm-general][] depending on usage),
+- Haskell EDSLs for design, synthesis, and verification of circuits (e.g. [CλaSH][], or the [Lava][] family of systems),
+- DSLs that are Haskell-inspired and Haskell-hosted, targeting various embedded systems (e.g. [Reduceron][] for FPGAs or ASICs, [Idris][] for C, [Cryptol][] for either),
+
+# Site Details
+This site is itself written in Haskell via the [Hakyll][] library. You may find all of its source code at its [GitHub repository][github].
 
 # Member Biographies
+You can find members of the Haskell Embedded group on the [GitHub Organization][github-org] or in the IRC channel [#haskell-embedded][haskellembedded-irc] on [Freenode][].
+
 ## [Calvin Beck](https://github.com/Chobbes)
 I enjoy long walks on the beach, lukewarm coffee, and candle-making.
 
@@ -22,3 +33,18 @@ Since 2004, my preferred tool stack was a combination of Python for anything hig
 
 ## [Shae Erisson](https://github.com/shapr)
 I hate long walks on the beach. Actually, I have a passionate hatred for beaches in general. The sand always get into my laptop and this interferes with my Haskell time.
+
+[copilot]: https://github.com/leepike/Copilot
+[ivory]: http://ivorylang.org/
+[lava]: http://blog.raintown.org/p/lava.html
+[CλaSH]: https://christiaanb.github.io/clash2/
+[reduceron]: https://github.com/tommythorn/Reduceron
+[hakyll]: http://jaspervdj.be/hakyll/
+[github]: https://github.com/HaskellEmbedded/HaskellEmbedded.github.io
+[github-org]: https://github.com/HaskellEmbedded
+[freenode]: https://freenode.net/
+[haskellembedded-irc]: irc://chat.freenode.net/%23haskell-embedded
+[idris]: https://hackage.haskell.org/package/idris
+[llvm-general]: https://hackage.haskell.org/package/llvm-general
+[cryptol]: https://github.com/GaloisInc/cryptol
+[sbv]: https://hackage.haskell.org/package/sbv
