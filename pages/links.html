@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Haskell Embedded Blog - Links</title>
+        <link href="../css/bootstrap.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <!-- syntax.css is Pandoc's syntax.css file, copied from:
+             https://github.com/jaspervdj/hakyll/blob/master/web/css/syntax.css
+          -->
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+
+        <link rel="apple-touch-icon" sizes="57x57" href="../apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="../apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="../apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="../apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="../apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="../apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="../apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="../apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon-180x180.png">
+        <link rel="icon" type="image/png" href="../favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="../android-chrome-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="../favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="../favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="../manifest.json">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Haskell Embedded Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../pages/about.html">About</a>
+                <!-- a href="/contact.html">Contact</a -->
+                <a href="../pages/links.html">Links</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Links</h1>
+
+            <p>Posts reference these links in context, but they are still useful in a central spot.</p>
+<h1 id="edsls-code-generation">EDSLs: Code Generation</h1>
+<ul>
+<li><a href="http://ivorylang.org/">Ivory</a> (<a href="https://hackage.haskell.org/package/ivory">hackage</a>, <a href="https://github.com/GaloisInc/ivory">GitHub repo</a>) is a more general EDSL from Galois “for safer systems programming”. Ivory is still quite young, but looks very promising.
+<ul>
+<li>This experience report is probably the best introduction: <a href="https://github.com/GaloisInc/smaccmpilot-experiencereport/blob/master/embedded-experience.pdf?raw=true" title="Hickey, P. C., Pike, L., Elliott, T., Bielman, J., &amp; Launchbury, J. (2014) Building Embedded Systems with Embedded DSLs (Experience Report).">Building Embedded Systems with Embedded DSLs (Experience Report)</a></li>
+<li>Their GitHub repo contains a <a href="https://github.com/GaloisInc/ivory/tree/master/ivory-paper">paper</a> that is still a work-in-progress.</li>
+</ul></li>
+<li><a href="https://github.com/leepike/Copilot">Copilot</a> (<a href="http://hackage.haskell.org/package/copilot">hackage</a>) is a “stream language for generating hard real-time C code” also from Galois. Documentation on Copilot is excellent.
+<ul>
+<li>This report from NASA gives a good explanation: <a href="http://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/20120014570.pdf" title="Pike, L., Wegmann, N., Niller, S., &amp; Goodloe, A. (2012). Experience Report: a Do-It-Yourself High-Assurance Compiler.">Experience Report: a Do-It-Yourself High-Assurance Compiler</a></li>
+<li>Copilot has backends for both Atom and SBV. Anthony Cowley’s talk at NYHUG, <a href="https://vimeo.com/77164337">Abstractions for the Functional Roboticist</a> (&amp; <a href="http://acowley.github.io/NYHUG/FunctionalRoboticist.pdf" title="Cowley, A. (2014). Abstractions for the Functional Roboticist.">slides PDF</a>), talks about both Copilot and SBV, among other things.</li>
+</ul></li>
+<li><a href="http://hackage.haskell.org/package/atom" title="atom: A DSL for embedded hard realtime applications. (hackage)">Atom</a> (<a href="https://github.com/tomahawkins/atom">GitHub repo</a>) is a language from <a href="http://tomahawkins.org/">Tom Hawkins</a> for hard realtime embedded software.
+<ul>
+<li>Documentation and examples are rather limited, but our <a href="../tags/atom.html">few posts</a> on Atom compile nearly everything we know on it.</li>
+</ul></li>
+<li><a href="https://hackage.haskell.org/package/sbv">SBV</a> (<a href="https://github.com/LeventErkok/sbv">GitHub repo</a>, <a href="https://leventerkok.github.io/sbv/">GitHub page</a>) is more specific to <a href="https://en.wikipedia.org/wiki/Satisfiability_Modulo_Theories">SMT</a>-based verification in Haskell, but also generates verified C code. Documentation and examples on SBV are excellent.</li>
+</ul>
+<h1 id="not-haskell-per-se-but-haskell-inspired-and-haskell-hosted">Not Haskell per se, but Haskell-inspired and Haskell-hosted</h1>
+<ul>
+<li><a href="http://www.idris-lang.org/">Idris</a> (<a href="https://hackage.haskell.org/package/idris">hackage</a>) is a language from Edwin Brady, “a general purpose language with full dependent types.” It is a recent language, but still has many good papers, talks, and references.
+<ul>
+<li>The paper from Brady &amp; Hammond, <a href="http://eb.host.cs.st-andrews.ac.uk/drafts/dsl-idris.pdf" title="Brady, E. &amp; Hammond, K. Resource-safe Systems Programming with Embedded Domain Specific Languages.">Resource-safe Systems Programming with Embedded Domain Specific Languages</a>, explains a particular application of Idris that looks very practical.</li>
+</ul></li>
+<li><a href="https://github.com/GaloisInc/cryptol">Cryptol</a> is yet another Galois creation, a DSL for specifying cryptographic algorithms.</li>
+</ul>
+<h1 id="edsls-circuit-synthesis">EDSLs: Circuit Synthesis</h1>
+<ul>
+<li><a href="https://christiaanb.github.io/clash2/">CλaSH: CAES Language for Synchronous Hardware</a> and its associated <a href="http://hackage.haskell.org/package/clash-prelude-0.6.0.1/docs/CLaSH-Tutorial.html">tutorial</a>. It is a “functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell.”</li>
+<li>Lava is an entire family of languages unto itself, but the seminal 1998 paper appears to be <a href="http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf">Lava: Hardware Design in Haskell</a> - which defines it as “a tool to assist circuit designers in specifying, designing, verifying and implementing hardware.”
+<ul>
+<li>One of its authors, Satnam Singh, has a blog entry on it as well: <a href="http://blog.raintown.org/p/lava.html">The Lava Hardware Description Language</a>.</li>
+</ul></li>
+</ul>
+<h1 id="fpgaasic-implementations">FPGA/ASIC Implementations</h1>
+<ul>
+<li><a href="http://www.cs.york.ac.uk/fp/reduceron/">The Reduceron</a> is some very interesting work, forked/revived as a newer <a href="https://github.com/tommythorn/Reduceron">GitHub project</a>.</li>
+</ul>
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+        <script src="../js/bootstrap.js"></script>
+    </body>
+</html>
