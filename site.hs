@@ -44,8 +44,9 @@ main = hakyll $ do
     match "posts/*" $ do
         route $ setExtension "html"
         compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    postCtxTags
-            >>= loadAndApplyTemplate "templates/default.html" postCtxTags
+            >>= loadAndApplyTemplate "templates/post.html"     postCtxTags
+            >>= loadAndApplyTemplate "templates/comments.html" postCtxTags
+            >>= loadAndApplyTemplate "templates/default.html"  postCtxTags
             >>= relativizeUrls
 
     create ["archive.html"] $ do
