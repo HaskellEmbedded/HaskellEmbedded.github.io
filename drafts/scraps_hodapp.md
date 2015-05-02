@@ -35,3 +35,17 @@ Things I still have not touched:
 6. What generated code looks like
 7. Periods overriding later periods
 8. The practical notion that you can apply periods and phases to entire sub-rules if you like
+
+
+
+TODO below:
+ - Links to Copilot calls
+ - Functional Roboticist slides
+
+Copilot and Atom share some similarities (besides the fact that Copilot can use Atom for code generation).  Both are synchronous, realtime languages.
+
+As some of the posts on Atom say, Atom's basic unit is a *rule* which involves some atomic operation.  That rule might have restrictions such as being active only at certain clock ticks or under certain conditions.
+
+Copilot's basic unit is a *stream*.  Streams have a value at every clock tick.  That value might come from some built-in streams (such as constant values or clocks), from sampling an external variable or function, or from operations on existing streams (such as adding, logical AND, or referring to past values).  *Triggers* are the mechanism for calling anything external.
+
+Copilot also has some decent papers written about it, and it has two very helpful features that are not present in Atom: pretty-printing the specification ('prettyPrint'), and interpreting the specification ('interpret') for a given number of cycles.

@@ -21,7 +21,8 @@ Posts reference these links in context, but they are still useful in a central s
 - [Cryptol][] is yet another Galois creation, a DSL for specifying cryptographic algorithms.
 
 # EDSLs: Circuit Synthesis
-- [CλaSH: CAES Language for Synchronous Hardware](https://christiaanb.github.io/clash2/) and its associated [tutorial](http://hackage.haskell.org/package/clash-prelude-0.6.0.1/docs/CLaSH-Tutorial.html). It is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."
+- [CλaSH: CAES Language for Synchronous Hardware][CλaSH] and its associated [tutorial](http://hackage.haskell.org/package/clash-prelude-0.6.0.1/docs/CLaSH-Tutorial.html). It is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."
+    - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the Terasic DE0-Nano.
 - Lava is an entire family of languages unto itself, but the seminal 1998 paper appears to be [Lava: Hardware Design in Haskell](http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf) - which defines it as "a tool to assist circuit designers in specifying, designing, verifying and implementing hardware."
     - One of its authors, Satnam Singh, has a blog entry on it as well: [The Lava Hardware Description Language](http://blog.raintown.org/p/lava.html).
 
