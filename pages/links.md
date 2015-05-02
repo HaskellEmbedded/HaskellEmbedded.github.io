@@ -21,15 +21,23 @@ Posts reference these links in context, but they are still useful in a central s
 - [Cryptol][] is yet another Galois creation, a DSL for specifying cryptographic algorithms.
 
 # EDSLs: Circuit Synthesis
-- [CλaSH: CAES Language for Synchronous Hardware][CλaSH] and its associated [tutorial](http://hackage.haskell.org/package/clash-prelude-0.6.0.1/docs/CLaSH-Tutorial.html). It is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."
-    - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the Terasic DE0-Nano.
-- Lava is an entire family of languages unto itself, but the seminal 1998 paper appears to be [Lava: Hardware Design in Haskell](http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf) - which defines it as "a tool to assist circuit designers in specifying, designing, verifying and implementing hardware."
+- From Christiaan Baaij is [CλaSH: CAES Language for Synchronous Hardware][CλaSH] ([GitHub][clash-github], [hackage][clash-hackage] and its associated [tutorial][clash-tutorial]. CλaSH is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."
+    - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the [Terasic DE0-Nano](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=139&No=593).
+- Lava is an entire family of Haskell-based DSLs unto itself, but the seminal 1998 paper appears to be [Lava: Hardware Design in Haskell](http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf) - which defines it as "a tool to assist circuit designers in specifying, designing, verifying and implementing hardware."
     - One of its authors, Satnam Singh, has a blog entry on it as well: [The Lava Hardware Description Language](http://blog.raintown.org/p/lava.html).
 
 # FPGA/ASIC Implementations
 - [The Reduceron](http://www.cs.york.ac.uk/fp/reduceron/) is some very interesting work, forked/revived as a newer [GitHub project](https://github.com/tommythorn/Reduceron).
 
-[CλaSH]: https://christiaanb.github.io/clash2/
+# Compiling to Embedded Targets
+- The [Jhc][]-based [Ajhc][] compiler ([GitHub][ajhc-github], [Hackage][ajhc-hackage]) is a now defunct-project, but seemed to have the aim of compiling Haskell to various other platforms (especially given their "Haskell everywhere" tag).
+    - [Ajhc demo for Cortex-M3/4 board][ajhc-demo-cortex-m3] gives their example of compiling Haskell to an ARM Cortex M3/M4.
+    - The 2014 paper [Metasepi Report: Writing NetBSD Sound Drivers in Haskell: A Reentrant Haskell Compiler for Operating Systems Programming][ajhc-clh-paper] from Kiwamu Okabe (METASEPI) and Takayuki Muranushi (Kyotu University) talks about the experiences and challenges with using a Haskell compiler for targeting embedded code.
+
+[CλaSH]: http://www.clash-lang.org
+[clash-github]: https://github.com/clash-lang
+[clash-hackage]: https://hackage.haskell.org/package/clash-ghc
+[clash-tutorial]: http://hackage.haskell.org/package/clash-prelude/docs/CLaSH-Tutorial.html
 [functionalroboticist]: http://acowley.github.io/NYHUG/FunctionalRoboticist.pdf "Cowley, A. (2014). Abstractions for the Functional Roboticist."
 [functionalroboticist-video]: https://vimeo.com/77164337
 [atom-github]: https://github.com/tomahawkins/atom
@@ -54,3 +62,9 @@ Posts reference these links in context, but they are still useful in a central s
 [sbv]: https://hackage.haskell.org/package/sbv
 [smt]: https://en.wikipedia.org/wiki/Satisfiability_Modulo_Theories
 [tom hawkins]: http://tomahawkins.org/
+[ajhc-demo-cortex-m3]: https://github.com/ajhc/demo-cortex-m3
+[Ajhc]: http://ajhc.metasepi.org
+[ajhc-github]: https://github.com/ajhc/ajhc
+[ajhc-hackage]: https://hackage.haskell.org/package/ajhc
+[ajhc-clh-paper]: http://www.metasepi.org/doc/metasepi-icfp2014.pdf "Metasepi Report: Writing NetBSD Sound Drivers in Haskell (Okabe, K. & Muranushi, T.)"
+[Jhc]: http://repetae.net/computer/jhc/
