@@ -33,6 +33,7 @@ Posts reference these links in context, but they are still useful in a central s
 - The [Jhc][]-based [Ajhc][] compiler ([GitHub][ajhc-github], [Hackage][ajhc-hackage]) is a now defunct-project, but seemed to have the aim of compiling Haskell to various other platforms (especially given their "Haskell everywhere" tag).
     - [Ajhc demo for Cortex-M3/4 board][ajhc-demo-cortex-m3] gives their example of compiling Haskell to an ARM Cortex M3/M4.
     - The 2014 paper [Metasepi Report: Writing NetBSD Sound Drivers in Haskell: A Reentrant Haskell Compiler for Operating Systems Programming][ajhc-clh-paper] from Kiwamu Okabe (METASEPI) and Takayuki Muranushi (Kyotu University) talks about the experiences and challenges with using a Haskell compiler for targeting embedded code.
+    - Kiwamu Okabe has a number of presentations up at [SlideShare][masterq-slideshare] about his work with METASEPI and Ajhc.
 
 [CλaSH]: http://www.clash-lang.org
 [clash-github]: https://github.com/clash-lang
@@ -68,3 +69,4 @@ Posts reference these links in context, but they are still useful in a central s
 [ajhc-hackage]: https://hackage.haskell.org/package/ajhc
 [ajhc-clh-paper]: http://www.metasepi.org/doc/metasepi-icfp2014.pdf "Metasepi Report: Writing NetBSD Sound Drivers in Haskell (Okabe, K. & Muranushi, T.)"
 [Jhc]: http://repetae.net/computer/jhc/
+[masterq-slideshare]: http://www.slideshare.net/master_q/presentations
