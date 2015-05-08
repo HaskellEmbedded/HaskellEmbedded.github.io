@@ -4,7 +4,7 @@ title: Links
 
 Posts reference these links in context, but they are still useful in a central spot.
 
-# EDSLs: Code Generation
+# Code Generation EDSLs
 - [Ivory][] ([hackage][ivory-hackage], [GitHub repo][ivory-github]) is a more general EDSL from Galois "for safer systems programming". Ivory is still quite young, but looks very promising.
     - This experience report is probably the best introduction: [Building Embedded Systems with Embedded DSLs (Experience Report)][ivory-paper]
     - Their GitHub repo contains a [paper][ivory-paper2] that is still a work-in-progress.
@@ -15,25 +15,27 @@ Posts reference these links in context, but they are still useful in a central s
     - Documentation and examples are rather limited, but our [few posts](/tags/atom.html) on Atom compile nearly everything we know on it.
 - [SBV][] ([GitHub repo][sbv-github], [GitHub page][sbv-githubio]) is more specific to [SMT][]-based verification in Haskell, but also generates verified C code. Documentation and examples on SBV are excellent.
 
-# Not Haskell per se, but Haskell-inspired and Haskell-hosted
-- [Idris][] ([hackage][idris-hackage]) is a language from Edwin Brady, "a general purpose language with full dependent types." It is a recent language, but still has many good papers, talks, and references.
-    - The paper from Brady & Hammond, [Resource-safe Systems Programming with Embedded Domain Specific Languages][idris-paper], explains a particular application of Idris that looks very practical.
-- [Cryptol][] is yet another Galois creation, a DSL for specifying cryptographic algorithms.
-
-# EDSLs: Circuit Synthesis
-- From Christiaan Baaij is [CλaSH: CAES Language for Synchronous Hardware][CλaSH] ([GitHub][clash-github], [hackage][clash-hackage] and its associated [tutorial][clash-tutorial]. CλaSH is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."  Note in the "CλaSH vs Lava" section in the tutorial that CλaSH is not an EDSL like the Lava family, but rather, it uses a static analysis approach.
-    - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the [Terasic DE0-Nano](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=139&No=593).
+# Circuit Design EDSLs
 - Lava is an entire family of Haskell-based EDSLs unto itself, but the seminal 1998 paper appears to be [Lava: Hardware Design in Haskell](http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf) - which defines it as "a tool to assist circuit designers in specifying, designing, verifying and implementing hardware."
     - One of its authors, Satnam Singh, has a blog entry on it as well: [The Lava Hardware Description Language](http://blog.raintown.org/p/lava.html).
 
-# FPGA/ASIC Implementations
-- [The Reduceron](http://www.cs.york.ac.uk/fp/reduceron/) is some very interesting work, forked/revived as a newer [GitHub project](https://github.com/tommythorn/Reduceron).
+# Compiling for FPGA/ASIC
+- From Christiaan Baaij is [CλaSH: CAES Language for Synchronous Hardware][CλaSH] ([GitHub][clash-github], [hackage][clash-hackage] and its associated [tutorial][clash-tutorial]. CλaSH is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."
+    - Note in the "CλaSH vs Lava" section in the tutorial that CλaSH is not an EDSL like the Lava family, but rather, it uses a static analysis approach.
+    - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the [Terasic DE0-Nano](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=139&No=593).
+- [The Reduceron][reduceron-original] is some very interesting work with an FPGA softcore for running lazy functional programs.
+    - It was forked/revived as a [newer project][practical-reduceron] ([GitHub][reduceron-github]).
 
 # Compiling to Embedded Targets
 - The [Jhc][]-based [Ajhc][] compiler ([GitHub][ajhc-github], [Hackage][ajhc-hackage]) is a now defunct-project, but seemed to have the aim of compiling Haskell to various other platforms (especially given their "Haskell everywhere" tag).
     - [Ajhc demo for Cortex-M3/4 board][ajhc-demo-cortex-m3] gives their example of compiling Haskell to an ARM Cortex M3/M4.
     - The 2014 paper [Metasepi Report: Writing NetBSD Sound Drivers in Haskell: A Reentrant Haskell Compiler for Operating Systems Programming][ajhc-clh-paper] from Kiwamu Okabe (METASEPI) and Takayuki Muranushi (Kyotu University) talks about the experiences and challenges with using a Haskell compiler for targeting embedded code.
     - Kiwamu Okabe has a number of presentations up at [SlideShare][masterq-slideshare] about his work with METASEPI and Ajhc.
+
+# Not Haskell per se, but Haskell-inspired and Haskell-hosted
+- [Idris][] ([hackage][idris-hackage]) is a language from Edwin Brady, "a general purpose language with full dependent types." It is a recent language, but still has many good papers, talks, and references.
+    - The paper from Brady & Hammond, [Resource-safe Systems Programming with Embedded Domain Specific Languages][idris-paper], explains a particular application of Idris that looks very practical.
+- [Cryptol][] is yet another Galois creation, a DSL for specifying cryptographic algorithms.
 
 [CλaSH]: http://www.clash-lang.org
 [clash-github]: https://github.com/clash-lang
@@ -63,6 +65,9 @@ Posts reference these links in context, but they are still useful in a central s
 [sbv]: https://hackage.haskell.org/package/sbv
 [smt]: https://en.wikipedia.org/wiki/Satisfiability_Modulo_Theories
 [tom hawkins]: http://tomahawkins.org/
+[reduceron-original]: http://www.cs.york.ac.uk/fp/reduceron/
+[reduceron-github]: https://github.com/tommythorn/Reduceron
+[practical-reduceron]: http://thorn.ws/reduceron/Reduceron/Practical_Reduceron.html
 [ajhc-demo-cortex-m3]: https://github.com/ajhc/demo-cortex-m3
 [Ajhc]: http://ajhc.metasepi.org
 [ajhc-github]: https://github.com/ajhc/ajhc
