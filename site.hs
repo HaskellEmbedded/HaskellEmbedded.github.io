@@ -49,6 +49,18 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html"  postCtxTags
             >>= relativizeUrls
 
+    -- We want .lhs files to be directly accessible, so copy them through unmodified.
+    match "drafts/*.lhs" $ version "raw" $ do
+        route idRoute
+        compile $ getResourceBody >>= relativizeUrls
+
+    match "drafts/*" $ do
+        route $ setExtension "html"
+        compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/post.html"     postCtxTags
+            >>= loadAndApplyTemplate "templates/default.html"  postCtxTags
+            >>= relativizeUrls
+
     create ["archive.html"] $ do
         route idRoute
         compile $ do

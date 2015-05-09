@@ -1,5 +1,6 @@
 ---
 title: How I Got Here (i.e. to using Haskell for embedded code)
+date: 2015-05-09
 author: Chris Hodapp
 ---
 
