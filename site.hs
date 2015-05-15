@@ -11,6 +11,13 @@ import           Data.Monoid (mappend)
 import           Hakyll
 import           System.FilePath
 
+feedConfiguration :: FeedConfiguration
+feedConfiguration = FeedConfiguration
+    { feedTitle = "Haskell Embedded: Functional Programming and Embedded Systems"
+    , feedDescription = "A blog about Haskell / functional programming and embedded systems."
+    , feedRoot = "http://haskellembedded.github.io/"
+    }
+
 -- | Main entry point for generating all code via Hakyll
 main :: IO ()
 main = hakyll $ do
@@ -45,6 +52,7 @@ main = hakyll $ do
         route $ setExtension "html"
         compile $ pandocCompiler
             >>= loadAndApplyTemplate "templates/post.html"     postCtxTags
+            >>= saveSnapshot "feedContent"
             >>= loadAndApplyTemplate "templates/comments.html" postCtxTags
             >>= loadAndApplyTemplate "templates/default.html"  postCtxTags
             >>= relativizeUrls
@@ -90,6 +98,18 @@ main = hakyll $ do
                 >>= relativizeUrls
 
     match "templates/*" $ compile templateCompiler
+                                  
+    create ["atom.xml"] $ do
+        route idRoute
+        compile $ do
+            posts <- recentFirst =<< loadAllSnapshots "posts/*" "feedContent"
+            renderAtom myFeedConfiguration feedCtx posts
+
+    create ["rss.xml"] $ do
+        route idRoute
+        compile $ do
+            posts <- recentFirst =<< loadAllSnapshots "posts/*" "feedContent"
+            renderRss myFeedConfiguration feedCtx posts
 
     tagsRules tags $ \tag pattern -> do
         let title = "Posts tagged \"" ++ tag ++ "\""
