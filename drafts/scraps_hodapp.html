@@ -5,7 +5,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - Posts tagged "idris"</title>
+        <title>Haskell Embedded Blog - How I Got Here (i.e. to using Haskell for embedded code)</title>
         <link href="../css/bootstrap.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <!-- syntax.css is Pandoc's syntax.css file, copied from:
@@ -48,16 +48,57 @@
         </div>
 
         <div id="content">
-            <h1>Posts tagged "idris"</h1>
+            <h1>How I Got Here (i.e. to using Haskell for embedded code)</h1>
 
-            <ul>
+            <div class="info">
+    Posted on May  9, 2015
     
-        <li>
-            <a href="../posts/2015-02-06-how-i-got-here.html">How I Got Here (i.e. to using Haskell for embedded code)</a> - February  6, 2015
-        </li>
+        by Chris Hodapp
     
+</div>
+<div class="info">
+    
+    Tags: 
+    
+</div>
+
+<p>Some ideas:</p>
+<ul>
+<li>What my experiences were prior to this</li>
+<li>My results with Ivory</li>
+<li>More specific Ivory examples? I could probably create a simplified example.</li>
+<li>Atom &amp; concurrency - some examples here would be most helpful.</li>
+<li>What about the Ruby creator quote that I quite like?</li>
+<li>For Ivory: What I ran into with C forcing a coupling between compilation unit and local representation.</li>
 </ul>
-
+<p>Stuff that might be out of the scope of this blog:</p>
+<ul>
+<li>Why did I like Ruby?</li>
+<li>Why did I like Python?</li>
+<li>What did I find interesting about Lisp?</li>
+</ul>
+<p>Links to cover:</p>
+<ul>
+<li>http://techoverflow.net/blog/2014/07/28/using-quasiquotation-for-more-readable-atom-code/</li>
+<li>http://techoverflow.net/blog/2014/07/28/yet-another-atom-arduino-blinker/</li>
+</ul>
+<h1 id="big-gaping-holes-in-this-example">Big Gaping Holes in This Example</h1>
+<p>Things I still have not touched:</p>
+<ol style="list-style-type: decimal">
+<li>Phases (in any useful sense)</li>
+<li>Probes</li>
+<li>Assertions</li>
+<li>Coverage checking</li>
+<li>What the Atom compiler outputs</li>
+<li>What generated code looks like</li>
+<li>Periods overriding later periods</li>
+<li>The practical notion that you can apply periods and phases to entire sub-rules if you like</li>
+</ol>
+<p>TODO below: - Links to Copilot calls - Functional Roboticist slides</p>
+<p>Copilot and Atom share some similarities (besides the fact that Copilot can use Atom for code generation). Both are synchronous, realtime languages.</p>
+<p>As some of the posts on Atom say, Atom’s basic unit is a <em>rule</em> which involves some atomic operation. That rule might have restrictions such as being active only at certain clock ticks or under certain conditions.</p>
+<p>Copilot’s basic unit is a <em>stream</em>. Streams have a value at every clock tick. That value might come from some built-in streams (such as constant values or clocks), from sampling an external variable or function, or from operations on existing streams (such as adding, logical AND, or referring to past values). <em>Triggers</em> are the mechanism for calling anything external.</p>
+<p>Copilot also has some decent papers written about it, and it has two very helpful features that are not present in Atom: pretty-printing the specification (‘prettyPrint’), and interpreting the specification (‘interpret’) for a given number of cycles.</p>
 
         </div>
         <div id="footer">

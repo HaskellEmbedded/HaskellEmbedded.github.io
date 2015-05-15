@@ -5,7 +5,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - Posts tagged "idris"</title>
+        <title>Haskell Embedded Blog - Copilot Verification!</title>
         <link href="../css/bootstrap.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <!-- syntax.css is Pandoc's syntax.css file, copied from:
@@ -48,16 +48,26 @@
         </div>
 
         <div id="content">
-            <h1>Posts tagged "idris"</h1>
+            <h1>Copilot Verification!</h1>
 
-            <ul>
+            <div class="info">
+    Posted on May  9, 2015
     
-        <li>
-            <a href="../posts/2015-02-06-how-i-got-here.html">How I Got Here (i.e. to using Haskell for embedded code)</a> - February  6, 2015
-        </li>
+        by Calvin Beck
     
-</ul>
+</div>
+<div class="info">
+    
+    Tags: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/copilot.html">copilot</a>
+    
+</div>
 
+<p>Allo, allo!</p>
+<p>In this series of posts we are going to be exploring the usage of <a href="http://leepike.github.io/Copilot/">Copilot</a> for building and verifying Arduino programs. Some of my undergraduate research has involved writing experimental <a href="http://en.wikipedia.org/wiki/Domain-specific_language">DSLs</a> for generating formal models (both <a href="http://nusmv.fbk.eu/">NuSMV</a> and <a href="http://www.prismmodelchecker.org/">PRISM</a> models), and executable Arduino code from one language. Let’s see if we can do something similar with Copilot!</p>
+<p>One of the problems that I worked with for testing my DSLs was the orientation of unicyclic networks. The idea is that you are given a collection of identical processors running identical programs. These processors are all connected to each other in a network. This network can have at most one cycle in it. The processors then run a ring orientation protocol which they use to figure out a consistent notion of which processor is to the left and right of it. E.g., if you have three processors</p>
+<pre><code>A &lt;-&gt; B &lt;-&gt; C</code></pre>
+<p>Then A might be left of B, which means it also has to be left of C.</p>
+<p>We’re going to use the algorithm outlined in <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.50.85">Uniform Self-Stabilizing Orientation of Unicyclic networks under Read/Write Atomicity</a>, which is actually broken into a couple parts.</p>
 
         </div>
         <div id="footer">

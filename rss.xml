@@ -1,56 +1,16 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - How I Got Here (i.e. to using Haskell for embedded code)</title>
-        <link href="../css/bootstrap.css" rel="stylesheet" />
-        <link rel="stylesheet" type="text/css" href="../css/default.css" />
-        <!-- syntax.css is Pandoc's syntax.css file, copied from:
-             https://github.com/jaspervdj/hakyll/blob/master/web/css/syntax.css
-          -->
-        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
-
-        <link rel="apple-touch-icon" sizes="57x57" href="../apple-touch-icon-57x57.png">
-        <link rel="apple-touch-icon" sizes="60x60" href="../apple-touch-icon-60x60.png">
-        <link rel="apple-touch-icon" sizes="72x72" href="../apple-touch-icon-72x72.png">
-        <link rel="apple-touch-icon" sizes="76x76" href="../apple-touch-icon-76x76.png">
-        <link rel="apple-touch-icon" sizes="114x114" href="../apple-touch-icon-114x114.png">
-        <link rel="apple-touch-icon" sizes="120x120" href="../apple-touch-icon-120x120.png">
-        <link rel="apple-touch-icon" sizes="144x144" href="../apple-touch-icon-144x144.png">
-        <link rel="apple-touch-icon" sizes="152x152" href="../apple-touch-icon-152x152.png">
-        <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon-180x180.png">
-        <link rel="icon" type="image/png" href="../favicon-32x32.png" sizes="32x32">
-        <link rel="icon" type="image/png" href="../android-chrome-192x192.png" sizes="192x192">
-        <link rel="icon" type="image/png" href="../favicon-96x96.png" sizes="96x96">
-        <link rel="icon" type="image/png" href="../favicon-16x16.png" sizes="16x16">
-        <link rel="manifest" href="../manifest.json">
-        <meta name="msapplication-TileColor" content="#da532c">
-        <meta name="msapplication-TileImage" content="/mstile-144x144.png">
-        <meta name="theme-color" content="#ffffff">
-    </head>
-    <body>
-        <div id="header">
-            <div id="logo">
-                <a href="../">Haskell Embedded Blog</a>
-            </div>
-            <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../pages/about.html">About</a>
-                <!-- a href="/contact.html">Contact</a -->
-                <a href="../pages/links.html">Links</a>
-                <a href="../archive.html">Archive</a>
-		<a href="../rss.xml">RSS</a>
-		<a href="../atom.xml">ATOM</a>
-            </div>
-        </div>
-
-        <div id="content">
-            <h1>How I Got Here (i.e. to using Haskell for embedded code)</h1>
-
-            <div class="info">
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Haskell Embedded: Functional Programming and Embedded Systems</title>
+        <link>http://haskellembedded.github.io/</link>
+        <description><![CDATA[A blog about Haskell / functional programming and embedded systems.]]></description>
+        <atom:link href="http://haskellembedded.github.io//rss.xml" rel="self"
+                   type="application/rss+xml" />
+        <lastBuildDate>Fri, 06 Feb 2015 00:00:00 UT</lastBuildDate>
+        <item>
+    <title>How I Got Here (i.e. to using Haskell for embedded code)</title>
+    <link>http://haskellembedded.github.io//posts/2015-02-06-how-i-got-here.html</link>
+    <description><![CDATA[<div class="info">
     Posted on February  6, 2015
     
         by Chris Hodapp
@@ -58,7 +18,7 @@
 </div>
 <div class="info">
     
-    Tags: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/atom.html">atom</a>, <a href="../tags/ivory.html">ivory</a>, <a href="../tags/copilot.html">copilot</a>, <a href="../tags/idris.html">idris</a>, <a href="../tags/sbv.html">sbv</a>, <a href="../tags/python.html">python</a>
+    Tags: <a href="/tags/haskell.html">haskell</a>, <a href="/tags/atom.html">atom</a>, <a href="/tags/ivory.html">ivory</a>, <a href="/tags/copilot.html">copilot</a>, <a href="/tags/idris.html">idris</a>, <a href="/tags/sbv.html">sbv</a>, <a href="/tags/python.html">python</a>
     
 </div>
 
@@ -112,27 +72,38 @@
 <li>Ivory, an eDSL for safe systems programming. <a href="http://ivorylang.org/" class="uri">http://ivorylang.org/</a> and <a href="https://github.com/GaloisInc/ivory" class="uri">https://github.com/GaloisInc/ivory</a></li>
 <li>Jhc Haskell Compiler. <a href="http://repetae.net/computer/jhc/" class="uri">http://repetae.net/computer/jhc/</a></li>
 </ol>
+]]></description>
+    <pubDate>Fri, 06 Feb 2015 00:00:00 UT</pubDate>
+    <guid>http://haskellembedded.github.io//posts/2015-02-06-how-i-got-here.html</guid>
+</item>
+<item>
+    <title>Haskelly Beginnings</title>
+    <link>http://haskellembedded.github.io//posts/2015-01-31-haskelly-beginnings.html</link>
+    <description><![CDATA[<div class="info">
+    Posted on January 31, 2015
+    
+        by Calvin Beck
+    
+</div>
+<div class="info">
+    
+    Tags: 
+    
+</div>
 
+<p>Greetings, all!</p>
+<p>This is the start of a project to expand Haskell’s reach in the embedded world. At the moment we are simply exploring some of the available options, and we hope to expand on the documentation, and examples that are available. Here’s a list of some of the things which we are aware of? Got anymore? Let us know!</p>
+<ul>
+<li><a href="http://leepike.github.io/Copilot/">Copilot</a></li>
+<li><a href="https://hackage.haskell.org/package/atom">Atom</a></li>
+<li><a href="http://ivorylang.org/ivory-introduction.html">Ivory</a></li>
+</ul>
+<p>We’ll have a better idea of what’s going on with this soon. Right now this is essentially just a test of our super cool <a href="http://jaspervdj.be/hakyll/">Hakyll</a> blog using <a href="https://pages.github.com/">GitHub Pages</a></p>
+<p>You can find the source for this blog <a href="https://github.com/HaskellEmbedded/HaskellEmbedded.github.io/tree/source">here</a>!</p>
+]]></description>
+    <pubDate>Sat, 31 Jan 2015 00:00:00 UT</pubDate>
+    <guid>http://haskellembedded.github.io//posts/2015-01-31-haskelly-beginnings.html</guid>
+</item>
 
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  /* * * CONFIGURATION VARIABLES * * */
-  var disqus_shortname = 'haskellembedded';
-
-  /* * * DON'T EDIT BELOW THIS LINE * * */
-  (function() {
-  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-  })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
-
-        </div>
-        <div id="footer">
-            Site proudly generated by
-            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
-        </div>
-        <script src="../js/bootstrap.js"></script>
-    </body>
-</html>
+    </channel> 
+</rss>

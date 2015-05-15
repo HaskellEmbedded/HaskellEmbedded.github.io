@@ -42,6 +42,8 @@
                 <!-- a href="/contact.html">Contact</a -->
                 <a href="../pages/links.html">Links</a>
                 <a href="../archive.html">Archive</a>
+		<a href="../rss.xml">RSS</a>
+		<a href="../atom.xml">ATOM</a>
             </div>
         </div>
 
@@ -49,7 +51,7 @@
             <h1>Links</h1>
 
             <p>Posts reference these links in context, but they are still useful in a central spot.</p>
-<h1 id="edsls-code-generation">EDSLs: Code Generation</h1>
+<h1 id="code-generation-edsls">Code Generation EDSLs</h1>
 <ul>
 <li><a href="http://ivorylang.org/">Ivory</a> (<a href="https://hackage.haskell.org/package/ivory">hackage</a>, <a href="https://github.com/GaloisInc/ivory">GitHub repo</a>) is a more general EDSL from Galois “for safer systems programming”. Ivory is still quite young, but looks very promising.
 <ul>
@@ -67,6 +69,34 @@
 </ul></li>
 <li><a href="https://hackage.haskell.org/package/sbv">SBV</a> (<a href="https://github.com/LeventErkok/sbv">GitHub repo</a>, <a href="https://leventerkok.github.io/sbv/">GitHub page</a>) is more specific to <a href="https://en.wikipedia.org/wiki/Satisfiability_Modulo_Theories">SMT</a>-based verification in Haskell, but also generates verified C code. Documentation and examples on SBV are excellent.</li>
 </ul>
+<h1 id="circuit-design-edsls">Circuit Design EDSLs</h1>
+<ul>
+<li>Lava is an entire family of Haskell-based EDSLs unto itself, but the seminal 1998 paper appears to be <a href="http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf">Lava: Hardware Design in Haskell</a> - which defines it as “a tool to assist circuit designers in specifying, designing, verifying and implementing hardware.”
+<ul>
+<li>One of its authors, Satnam Singh, has a blog entry on it as well: <a href="http://blog.raintown.org/p/lava.html">The Lava Hardware Description Language</a>.</li>
+</ul></li>
+</ul>
+<h1 id="compiling-for-fpgaasic">Compiling for FPGA/ASIC</h1>
+<ul>
+<li>From Christiaan Baaij is <a href="http://www.clash-lang.org">CλaSH: CAES Language for Synchronous Hardware</a> (<a href="https://github.com/clash-lang">GitHub</a>, <a href="https://hackage.haskell.org/package/clash-ghc">hackage</a> and its associated <a href="http://hackage.haskell.org/package/clash-prelude/docs/CLaSH-Tutorial.html">tutorial</a>. CλaSH is a “functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell.”
+<ul>
+<li>Note in the “CλaSH vs Lava” section in the tutorial that CλaSH is not an EDSL like the Lava family, but rather, it uses a static analysis approach.</li>
+<li>arjanb pointed us to <a href="https://christiaanb.github.io/posts/clash-fpga-starter/">CλaSH FPGA Starter</a>, a quick tutorial for the <a href="https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&amp;CategoryNo=139&amp;No=593">Terasic DE0-Nano</a>.</li>
+</ul></li>
+<li><a href="http://www.cs.york.ac.uk/fp/reduceron/">The Reduceron</a> is some very interesting work with an FPGA softcore for running lazy functional programs.
+<ul>
+<li>It was forked/revived as a <a href="http://thorn.ws/reduceron/Reduceron/Practical_Reduceron.html">newer project</a> (<a href="https://github.com/tommythorn/Reduceron">GitHub</a>).</li>
+</ul></li>
+</ul>
+<h1 id="compiling-to-embedded-targets">Compiling to Embedded Targets</h1>
+<ul>
+<li>The <a href="http://repetae.net/computer/jhc/">Jhc</a>-based <a href="http://ajhc.metasepi.org">Ajhc</a> compiler (<a href="https://github.com/ajhc/ajhc">GitHub</a>, <a href="https://hackage.haskell.org/package/ajhc">Hackage</a>) is a now defunct-project, but seemed to have the aim of compiling Haskell to various other platforms (especially given their “Haskell everywhere” tag).
+<ul>
+<li><a href="https://github.com/ajhc/demo-cortex-m3">Ajhc demo for Cortex-M3/4 board</a> gives their example of compiling Haskell to an ARM Cortex M3/M4.</li>
+<li>The 2014 paper <a href="http://www.metasepi.org/doc/metasepi-icfp2014.pdf" title="Metasepi Report: Writing NetBSD Sound Drivers in Haskell (Okabe, K. &amp; Muranushi, T.)">Metasepi Report: Writing NetBSD Sound Drivers in Haskell: A Reentrant Haskell Compiler for Operating Systems Programming</a> from Kiwamu Okabe (METASEPI) and Takayuki Muranushi (Kyotu University) talks about the experiences and challenges with using a Haskell compiler for targeting embedded code.</li>
+<li>Kiwamu Okabe has a number of presentations up at <a href="http://www.slideshare.net/master_q/presentations">SlideShare</a> about his work with METASEPI and Ajhc.</li>
+</ul></li>
+</ul>
 <h1 id="not-haskell-per-se-but-haskell-inspired-and-haskell-hosted">Not Haskell per se, but Haskell-inspired and Haskell-hosted</h1>
 <ul>
 <li><a href="http://www.idris-lang.org/">Idris</a> (<a href="https://hackage.haskell.org/package/idris">hackage</a>) is a language from Edwin Brady, “a general purpose language with full dependent types.” It is a recent language, but still has many good papers, talks, and references.
@@ -74,18 +104,6 @@
 <li>The paper from Brady &amp; Hammond, <a href="http://eb.host.cs.st-andrews.ac.uk/drafts/dsl-idris.pdf" title="Brady, E. &amp; Hammond, K. Resource-safe Systems Programming with Embedded Domain Specific Languages.">Resource-safe Systems Programming with Embedded Domain Specific Languages</a>, explains a particular application of Idris that looks very practical.</li>
 </ul></li>
 <li><a href="https://github.com/GaloisInc/cryptol">Cryptol</a> is yet another Galois creation, a DSL for specifying cryptographic algorithms.</li>
-</ul>
-<h1 id="edsls-circuit-synthesis">EDSLs: Circuit Synthesis</h1>
-<ul>
-<li><a href="https://christiaanb.github.io/clash2/">CλaSH: CAES Language for Synchronous Hardware</a> and its associated <a href="http://hackage.haskell.org/package/clash-prelude-0.6.0.1/docs/CLaSH-Tutorial.html">tutorial</a>. It is a “functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell.”</li>
-<li>Lava is an entire family of languages unto itself, but the seminal 1998 paper appears to be <a href="http://www.cse.chalmers.se/edu/year/2012/course/TDA956/Papers/Lava98.pdf">Lava: Hardware Design in Haskell</a> - which defines it as “a tool to assist circuit designers in specifying, designing, verifying and implementing hardware.”
-<ul>
-<li>One of its authors, Satnam Singh, has a blog entry on it as well: <a href="http://blog.raintown.org/p/lava.html">The Lava Hardware Description Language</a>.</li>
-</ul></li>
-</ul>
-<h1 id="fpgaasic-implementations">FPGA/ASIC Implementations</h1>
-<ul>
-<li><a href="http://www.cs.york.ac.uk/fp/reduceron/">The Reduceron</a> is some very interesting work, forked/revived as a newer <a href="https://github.com/tommythorn/Reduceron">GitHub project</a>.</li>
 </ul>
         </div>
         <div id="footer">
