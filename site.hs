@@ -11,10 +11,13 @@ import           Data.Monoid (mappend)
 import           Hakyll
 import           System.FilePath
 
+-- | Configuration for the RSS and ATOM feeds.
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration
     { feedTitle = "Haskell Embedded: Functional Programming and Embedded Systems"
     , feedDescription = "A blog about Haskell / functional programming and embedded systems."
+    , feedAuthorName = ""
+    , feedAuthorEmail = ""
     , feedRoot = "http://haskellembedded.github.io/"
     }
 
@@ -102,14 +105,14 @@ main = hakyll $ do
     create ["atom.xml"] $ do
         route idRoute
         compile $ do
-            posts <- recentFirst =<< loadAllSnapshots "posts/*" "feedContent"
-            renderAtom myFeedConfiguration feedCtx posts
+            posts <- recentFirst =<< loadAllSnapshots ("posts/*" .&&. complement "posts/*.lhs") "feedContent"
+            renderAtom feedConfiguration feedCtx posts
 
     create ["rss.xml"] $ do
         route idRoute
         compile $ do
-            posts <- recentFirst =<< loadAllSnapshots "posts/*" "feedContent"
-            renderRss myFeedConfiguration feedCtx posts
+            posts <- recentFirst =<< loadAllSnapshots ("posts/*" .&&. complement "posts/*.lhs") "feedContent"
+            renderRss feedConfiguration feedCtx posts
 
     tagsRules tags $ \tag pattern -> do
         let title = "Posts tagged \"" ++ tag ++ "\""
@@ -134,3 +137,7 @@ postCtx =
 -- | Post context, with tags:
 postCtxWithTags :: Tags -> Context String
 postCtxWithTags tags = tagsField "tags" tags `mappend` postCtx
+
+-- | Context for feeds.
+feedCtx :: Context String
+feedCtx = postCtx `mappend` bodyField "description"
