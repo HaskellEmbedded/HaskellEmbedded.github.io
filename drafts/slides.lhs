@@ -28,13 +28,17 @@ This uses on an existing compiler for certain stages (such as the parsing and ty
 
 GHC readily accomodates this by allowing developers to invoke GHC functionality, from Haskell, as a library.
 
-CλaSH from Christiaan Baaij does this to compile a subset of Haskell to VHDL and SystemVerilog.
+*CλaSH* from Christiaan Baaij does this to compile a subset of Haskell to VHDL and SystemVerilog.
 
 # Compiled EDSL
 
 This uses an EDSL (embedded domain-specific language) inside of Haskell to direct the process of code generation to a lower-level representation. (Otherwise called: *compiling*.)
 
 Note that in this case, Haskell code never actually *runs* on the embedded target; it is entirely decoupled from the Haskell runtime.
+
+From the target's perspective, nothing about Haskell (run-time, type system, or otherwise) exists.
+
+From Haskell's perspective, the target's runtime exists only in the abstract - it may reason about it in generalities.
 
 # Compiled EDSL: Examples
 
@@ -46,13 +50,30 @@ Examples:
 - The entire *Lava* family - Circuit design and verification
 - If suitably motivated, one could use Haskell's LLVM libraries for basically this.
 
-# Compiled EDSL: Atom input
+# Atom example (boilerplate)
 
-```haskell
-module Foo where
+> import Language.Atom
+> 
+> main :: IO ()
+> main = do
+>    (sched, _, _, _, _) <- compile "atom_example" atomCfg example
+>    putStrLn $ reportSchedule sched
+>    
+> atomCfg :: Config
+> atomCfg = defaults { cFuncName = "atom_tick"
+>                    , cStateName = "state_example"
+>                    , cCode = prePostCode
+>                    , hCode = prePostHeader
+>                    , cRuleCoverage = False
+>                    }
 
-import Bar
-```
+# Atom example (
+
+> tickSecond :: Atom (V Word64)
+> tickSecond = do
+>   clock <- word64 "clock_sec" 0
+>   period 1000 $ exactPhase 0 $ atom "second" $ incr clock
+>   return clock
 
 # Compiled EDSL: Atom output
 
@@ -64,4 +85,5 @@ import Bar
 
 # Why Haskell?
 
-Its type system is powerful enough to help substantially with things like correctness and safety.
+- It's a suitable host for EDSLs.
+- Its type system is powerful enough to help substantially with things like correctness and safety.
