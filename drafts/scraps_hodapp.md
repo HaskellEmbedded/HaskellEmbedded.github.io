@@ -38,6 +38,8 @@ Things I still have not touched:
 8. The practical notion that you can apply periods and phases to entire sub-rules if you like
 
 
+Copilot scraps
+====
 
 TODO below:
  - Links to Copilot calls
@@ -50,3 +52,11 @@ As some of the posts on Atom say, Atom's basic unit is a *rule* which involves s
 Copilot's basic unit is a *stream*.  Streams have a value at every clock tick.  That value might come from some built-in streams (such as constant values or clocks), from sampling an external variable or function, or from operations on existing streams (such as adding, logical AND, or referring to past values).  *Triggers* are the mechanism for calling anything external.
 
 Copilot also has some decent papers written about it, and it has two very helpful features that are not present in Atom: pretty-printing the specification ('prettyPrint'), and interpreting the specification ('interpret') for a given number of cycles.
+
+
+Abstract scraps
+====
+
+I should explore more the notion of 'lifting' a lower-level language up into Haskell, enabling Haskell as a template, macro, or metaprogramming language.  (I'm not sure which term fits best there.)
+
+The paper [Coq: The world’s best macro assembler?](http://research.microsoft.com/en-us/um/people/nick/coqasm.pdf) uses both 'metaprogramming' and 'macro' to refer to this.  However, the terms may differ based on the level of the language.  Ivory, for instance, lifts a representation of the C language up into Haskell, and it generates C.  Atom generates C, but what it provides in Haskell is a representation of a more constrained abstraction, so it is not simply a matter of saying that it lifts the lower-level language up to the level of Haskell.

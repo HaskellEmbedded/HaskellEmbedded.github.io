@@ -112,8 +112,8 @@ And a probe into `checkSensor` for the value of `sensorValue`:
 
 > checkSensor :: Word16 -> Atom () -> Atom ()
 > checkSensor threshold overThresholdAction = atom "check_sensor" $ do
->   ready <- return $ bool' "g_sensor_ready"
->   sensorValue <- return $ word16' "g_sensor_value"
+>   let ready = bool' "g_sensor_ready"
+>   let sensorValue = word16' "g_sensor_value"
 >   warmup <- timer "warmup"
 >   triggered <- bool "triggered" False
 >   sensorOn <- bool "sensor_on" False
@@ -158,8 +158,8 @@ I'm not sure what else I can easily tell Atom to do with an expression, so I jus
 
 *(Do you have a cleaner version? Show me.)*
 
-> printProbe :: (String, UE) -> Atom ()
-> printProbe (str, ue) = case typeOf ue of
+> printProbe_ :: (String, UE) -> Atom ()
+> printProbe_ (str, ue) = case typeOf ue of
 >   Int8   -> ps (ru :: E Int8)
 >   Int16  -> ps (ru :: E Int16)
 >   Int32  -> ps (ru :: E Int32)
