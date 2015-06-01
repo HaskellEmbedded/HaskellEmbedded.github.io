@@ -1,3 +1,6 @@
+# The below just generates the site with Hakyll.  It does not (yet) commit and
+# push the generated site anywhere.
+
 language: haskell
 ghc: 7.8
 branches:
@@ -12,3 +15,9 @@ git:
 before_install:
   - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
   - git submodule update --init
+
+# TODO:
+# http://docs.travis-ci.com/user/caching/#Arbitrary-directories
+# (Perhaps run in a cabal sandbox, and cache the contents of the sandbox.)
+# http://begriffs.com/posts/2014-08-12-create-static-site-with-hakyll-github.html
+# Whatever is at the above to let this actually commit.
