@@ -94,11 +94,15 @@
 <li>Periods overriding later periods</li>
 <li>The practical notion that you can apply periods and phases to entire sub-rules if you like</li>
 </ol>
+<h1 id="copilot-scraps">Copilot scraps</h1>
 <p>TODO below: - Links to Copilot calls - Functional Roboticist slides</p>
 <p>Copilot and Atom share some similarities (besides the fact that Copilot can use Atom for code generation). Both are synchronous, realtime languages.</p>
 <p>As some of the posts on Atom say, Atom’s basic unit is a <em>rule</em> which involves some atomic operation. That rule might have restrictions such as being active only at certain clock ticks or under certain conditions.</p>
 <p>Copilot’s basic unit is a <em>stream</em>. Streams have a value at every clock tick. That value might come from some built-in streams (such as constant values or clocks), from sampling an external variable or function, or from operations on existing streams (such as adding, logical AND, or referring to past values). <em>Triggers</em> are the mechanism for calling anything external.</p>
 <p>Copilot also has some decent papers written about it, and it has two very helpful features that are not present in Atom: pretty-printing the specification (‘prettyPrint’), and interpreting the specification (‘interpret’) for a given number of cycles.</p>
+<h1 id="abstract-scraps">Abstract scraps</h1>
+<p>I should explore more the notion of ‘lifting’ a lower-level language up into Haskell, enabling Haskell as a template, macro, or metaprogramming language. (I’m not sure which term fits best there.)</p>
+<p>The paper <a href="http://research.microsoft.com/en-us/um/people/nick/coqasm.pdf">Coq: The world’s best macro assembler?</a> uses both ‘metaprogramming’ and ‘macro’ to refer to this. However, the terms may differ based on the level of the language. Ivory, for instance, lifts a representation of the C language up into Haskell, and it generates C. Atom generates C, but what it provides in Haskell is a representation of a more constrained abstraction, so it is not simply a matter of saying that it lifts the lower-level language up to the level of Haskell.</p>
 
         </div>
         <div id="footer">
