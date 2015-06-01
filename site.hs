@@ -1,6 +1,6 @@
 {-|
 Module      : Main
-Description : Static HTML generation for HaskellEmbedded b log
+Description : Static HTML generation for HaskellEmbedded blog
 Copyright   : (c) 2015 Calvin Beck, Chris Hodapp, Shae Erisson
 License     : ??
 Stability   : experimental
