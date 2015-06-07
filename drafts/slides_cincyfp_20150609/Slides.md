@@ -33,26 +33,34 @@ Ajhc ([https://github.com/ajhc/ajhc](https://github.com/ajhc/ajhc)), a JHC-deriv
 
 This uses an existing compiler for certain stages (such as the parsing and type-checking), but a custom back-end to actually produce code.  This may adapt or disallow certain constructs.
 
-GHC readily accomodates this by allowing developers to invoke GHC functionality, from Haskell, as a library.  (For instance: *ghcjs*)
+GHC readily accomodates this by allowing developers to invoke GHC functionality, from Haskell, as a library.  (*GHCJS*, a Haskell to JavaScript compiler, uses this.)
+
+# Static analysis examples
+
+*CλaSH* ([http://www.clash-lang.org/](http://www.clash-lang.org/)) from Christiaan Baaij uses this to compile a subset of Haskell to VHDL and SystemVerilog.  CλaSH disallows certain things: recursive functions, recursive types, side effects, floating-point...
 
 . . .
 
-*CλaSH* ([http://www.clash-lang.org/](http://www.clash-lang.org/)) from Christiaan Baaij uses this to compile a subset of Haskell to VHDL and SystemVerilog.  CλaSH disallows certain things: recursive functions, recursive types, side effects, floating-point...
+*Reduceron* ([https://github.com/tommythorn/Reduceron](https://github.com/tommythorn/Reduceron)) is an "FPGA Haskell machine" relying on massively-parallel graph reduction, complete with GC and lazy evaluation.
+
+. . .
+
+Conal Elliott worked with a Silicon Valley startup, *Tabula*, on massively-parallel execution of Haskell code on a new architecture (*Spacetime*), using an approach based on Cartesian Closed Categories  ([http://conal.net/blog/posts/haskell-to-hardware-via-cccs](http://conal.net/blog/posts/haskell-to-hardware-via-cccs) & [https://github.com/conal/lambda-ccc/](https://github.com/conal/lambda-ccc/)).
 
 # Compiled EDSL
 
 This uses an EDSL (embedded domain-specific language) inside of Haskell to direct the process of code generation to a lower-level representation. (Otherwise called: *compiling*.)
 
-Note that in this case, Haskell code never actually *runs* on the embedded target.  Rather, it uses your specifications in the EDSL to build a representation of what *will* run there - in other words, a sort of metaprogramming.
+Note that in this case, Haskell code never actually *runs* on the embedded target.  Rather, it uses specifications in the EDSL to build a representation of what *will* run there - in other words, a sort of metaprogramming.
 
 The code that runs on the target is entirely decoupled from the Haskell runtime.
 
 # Compiled EDSL: Examples
 
-> - The entire *Lava* family for circuit design and verification.  (Compiles to: VHDL, Verilog, netlist?)
+> - The entire *Lava* family for circuit design and verification.  (Compiles to: VHDL, Verilog, netlist? Reduceron from a few slides ago is implemented in York Lava.)
 > - *Atom* for reactive, hard real-time, synchronous systems.  (Compiles to: C)
 > - *Copilot* for stream-oriented, hard real-time systems.  (Compiles to: C via Atom & SBV, CBMC model checker)
-> - *SBV* for theorem proving oriented around SMT.  (Compiles to: C)
+> - *SBV* for theorem proving oriented around SMT.  (Compiles to: C, various SMT solvers)
 > - *Ivory* for safe systems programming.  (Compiles to: C, LLVM(?), CVC4 & ACL2 theorem provers)
 
 # Atom EDSL
@@ -60,7 +68,7 @@ The code that runs on the target is entirely decoupled from the Haskell runtime.
 The official definition: "Atom is a Haskell EDSL for designing hard realtime embedded software. Based on guarded atomic actions (similar to STM), Atom enables highly concurrent programming without the need for mutex locking. In addition, Atom performs compile-time task scheduling and generates code with deterministic execution time and constant memory use, simplifying the process of timing verification and memory consumption in hard realtime applications. Without mutex locking and run-time task scheduling, Atom eliminates the need and overhead of RTOSes for many embedded applications."
 
 Short version:
-Atom is a *synchronous language*: One specifies rules that apply on specific clock ticks, and all state changes are atomic. Feed a specification into Atom, and Atom generates fairly bulletproof, deterministic C code.
+Atom is a *synchronous language*: One specifies rules that apply on specific clock ticks, and all rules are atomic. Feed a specification into Atom, and Atom generates fairly bulletproof, deterministic C code.
 
 # Imaginary Atom scenario
 
