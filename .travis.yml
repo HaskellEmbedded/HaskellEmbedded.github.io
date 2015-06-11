@@ -3,13 +3,6 @@ ghc: 7.8
 branches:
   only:
   - source
-git:
-  submodules: false
-
-before_install:
-# Use sed to replace the SSH URL with the public URL, then initialize submodules
-- sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-- git submodule update --init --remote
 
 install:
 - cabal sandbox init
@@ -27,11 +20,16 @@ script:
 
 # Should after_script actually be after_success?
 after_script:
-- cd _site
-- git checkout master
-- export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
-- git remote add github https://${GH_TOKEN}@${REMOTE}
-- git add --all
+- pushd ..
+- git clone -b master https://${GH_TOKEN}@${REMOTE} haskellembedded_master
+- popd
+- cp -vr _site/* haskellembedded_master
+- pushd haskellembedded_master
+#- cd _site
+#- git checkout master
+#- export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
+#- git remote add github https://${GH_TOKEN}@${REMOTE}
+#- git add --all
 - git status
 - git commit -m "Built by Travis ( build $TRAVIS_BUILD_NUMBER )"
 - git push github master:master | grep -v http
