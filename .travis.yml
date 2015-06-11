@@ -7,15 +7,14 @@ script:
 - cabal configure --enable-tests && cabal build && cabal run build
 git:
   submodules: false
-before_script:
-- git config --global user.email "$GIT_EMAIL"
-- git config --global user.name "$GIT_NAME"
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init
 after_script:
 - cd _site
 - export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
+- git config --global user.email "$GIT_EMAIL"
+- git config --global user.name "$GIT_NAME"
 - git remote add github https://${GH_TOKEN}@${REMOTE}
 - git add --all
 - git status
