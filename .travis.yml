@@ -7,6 +7,9 @@ script:
 - cabal configure --enable-tests && cabal build && cabal run build
 git:
   submodules: false
+before_script:
+- git config --global user.email "$GIT_EMAIL"
+- git config --global user.name "$GIT_NAME"
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init
@@ -18,5 +21,6 @@ after_script:
 - git status
 - git commit -m "Built by Travis ( build $TRAVIS_BUILD_NUMBER )"
 - git push github master:master | grep -v http
-GH_NAME=Chris Hodapp:
-  secure: YmxZEc1cPQT5TPxc6MJGkunQbc9s/ZNU+rBt1WFX0ncIgPD183R2/wamJKu/9+NO1PBYW5A8xdQ/emMmk1Yh3TYYDVy8MiQ6yqyjCZX9YTIFh/T/aCXZvrSuMeNSZLggRtz/lCZfJJoWerBqY+mC7J2TuO1bpTNcCC5rzW1yI5CuH4DzseLOjpghtqF3tTsBR5L2901K00/D1aQHkanrIk1mH1S2TfVmKimlPD1sBgLOP1f6+XJZQXELxUm/jzG5UJg5Vtwi+mkr2RnsQ68zLI3Tk6lh9xsXgrpET0LQaio2dRIfoxzNz/VMzsGfnz50i5z5Wt6bDpowluzer3or9Zv3KiK6UwX0kOZgRECBTAnSW/j3Ch+tLmyM3MT9UIGaX9dETCq2qAB2iI8F1aB8GqnQZvGaU3GIkLSb9DeJgiXrEYjKNIIQ4YK2ItPhEJEK2N6fEaULPnUIn7Pr+J+L5rXAJXDs3VOoY4e6NPYFtrp0SkTCtSfg/JnK8wSmo2na/WkXXxOTiuROBwzcRisaiyav+FogN58sXOIplMtLkf/w9UtRtNq0Hn45xy9aSKIM01I7v/q06TG5aNjn68qmLhYDJhMguOeRPlCRAPpWI8RuVyVbrAwv/Rm+VU8QMaVbnV/coxP4MhtH9DeuT2wUItcE28Rf9UQpinDNjwOG844=
+env:
+  global:
+    secure: dvrhz4aI6c6PbZCWtaVDVGYq1jGqKc7JBHlLTTt2pcdjSeVNF4D5fLtTIH6KjS1+WrjM8Cup61pE8Tx694f/7m1AmG/j4/rqByWfzzfpKjiaaY2+LTsbd0Mu+SPgBHtaohI8eTBZFWIUox1pGILc4Wy0y3hzfyI9gYDdfY3PuMeZaI/+vb4GKsi5bH5Jl9TB+d8wDk8kW3kIN5tTuMImKoKiEAuHTuxvQ2VARo89UkCfNiVe+ntdrr0Qr0W+ldmikY2wh9wWC0iHZVm0R68lcqGNr8pMrv8Yqj+GqQCTUbfcsI99VJERvj9q4hzN5excrorQea/ekmMvHay92JIwem3gCM9BP4r6s3GIWlygSR7aWi0DJxJzbupKK1TH1DPAcwvYa0TDCYSHthjAVIOR5DQT8AcTXp/fWNMvfxBszHqZ+GxCZt+1/llgl+48Z0PbRCd8/4gzxYSC9nos2wy00bbFF0DWdpHLnsB+TV5cXLkhLTTGxkC6kVGWuA04hZkBi9nsV0uP2x1Aew81mu47dTZ9QHkDYr8VSdtZ3tZJmi3l318oDLwQXtvrng6IjQhwh2PPyjnNcgBL7ZGvduB523xI5vQ0QmmV21EjjdT4EhHvOUWmaTeLK89G8Y8vn5XEKDcUuQlP40OmQbhU0TygTkwH5UOdyZWsUuqPl/mKwWI=
