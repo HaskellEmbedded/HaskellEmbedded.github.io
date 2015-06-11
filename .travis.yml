@@ -3,17 +3,18 @@ ghc: 7.8
 branches:
   only:
   - source
-script:
-- cabal configure --enable-tests && cabal build && cabal run build
 git:
   submodules: false
+before_script:
+- git config --global user.email "$GIT_EMAIL"
+- git config --global user.name "$GIT_NAME"
+script:
+- cabal sandbox init
+- cabal configure --enable-tests && cabal build && cabal run clean && cabal run build
 before_install:
 # Use sed to replace the SSH URL with the public URL, then initialize submodules
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init --remote
-before_script:
-- git config --global user.email "$GIT_EMAIL"
-- git config --global user.name "$GIT_NAME"
 after_script:
 - cd _site
 - git checkout master
