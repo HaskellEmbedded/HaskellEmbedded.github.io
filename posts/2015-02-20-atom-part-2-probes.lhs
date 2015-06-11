@@ -5,10 +5,10 @@ author: Chris Hodapp
 tags: haskell, atom
 ---
 
+*Later update: I've tried to introduce some of the documentation and explanation below into the Atom repository.*
+
 Probes
 ====
-
-*Later update: I've tried to introduce some of the documentation and explanation below into the Atom repository.*
 
 The [last post][] introduced [Atom][atom-hackage] with a simple example that I used to cover the basics. I'm going to extend this to cover [probes][hackage-probe]. Probes are a bit vague. The only explicit information I can find is:
 
