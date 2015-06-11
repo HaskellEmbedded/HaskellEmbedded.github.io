@@ -9,7 +9,7 @@ git:
   submodules: false
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-- git submodule update --init
+- git submodule update --init --remote
 before_script:
 - git config --global user.email "$GIT_EMAIL"
 - git config --global user.name "$GIT_NAME"
