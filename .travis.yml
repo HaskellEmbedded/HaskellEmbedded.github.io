@@ -15,6 +15,7 @@ before_script:
 - git config --global user.name "$GIT_NAME"
 after_script:
 - cd _site
+- git checkout master
 - export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
 - git remote add github https://${GH_TOKEN}@${REMOTE}
 - git add --all
