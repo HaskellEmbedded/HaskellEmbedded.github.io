@@ -10,11 +10,12 @@ git:
 before_install:
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
 - git submodule update --init
+before_script:
+- git config --global user.email "$GIT_EMAIL"
+- git config --global user.name "$GIT_NAME"
 after_script:
 - cd _site
 - export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
-- git config --global user.email "$GIT_EMAIL"
-- git config --global user.name "$GIT_NAME"
 - git remote add github https://${GH_TOKEN}@${REMOTE}
 - git add --all
 - git status
@@ -22,4 +23,4 @@ after_script:
 - git push github master:master | grep -v http
 env:
   global:
-    secure: dvrhz4aI6c6PbZCWtaVDVGYq1jGqKc7JBHlLTTt2pcdjSeVNF4D5fLtTIH6KjS1+WrjM8Cup61pE8Tx694f/7m1AmG/j4/rqByWfzzfpKjiaaY2+LTsbd0Mu+SPgBHtaohI8eTBZFWIUox1pGILc4Wy0y3hzfyI9gYDdfY3PuMeZaI/+vb4GKsi5bH5Jl9TB+d8wDk8kW3kIN5tTuMImKoKiEAuHTuxvQ2VARo89UkCfNiVe+ntdrr0Qr0W+ldmikY2wh9wWC0iHZVm0R68lcqGNr8pMrv8Yqj+GqQCTUbfcsI99VJERvj9q4hzN5excrorQea/ekmMvHay92JIwem3gCM9BP4r6s3GIWlygSR7aWi0DJxJzbupKK1TH1DPAcwvYa0TDCYSHthjAVIOR5DQT8AcTXp/fWNMvfxBszHqZ+GxCZt+1/llgl+48Z0PbRCd8/4gzxYSC9nos2wy00bbFF0DWdpHLnsB+TV5cXLkhLTTGxkC6kVGWuA04hZkBi9nsV0uP2x1Aew81mu47dTZ9QHkDYr8VSdtZ3tZJmi3l318oDLwQXtvrng6IjQhwh2PPyjnNcgBL7ZGvduB523xI5vQ0QmmV21EjjdT4EhHvOUWmaTeLK89G8Y8vn5XEKDcUuQlP40OmQbhU0TygTkwH5UOdyZWsUuqPl/mKwWI=
+    secure: TSqt4Q4MsINSeeBx01fVBlh8QpPcTLOUTKYIt89diRl3TicVuRPPci8GtIuXHtjnD5eeuqmhrn4PbaFE0eXiEOnkmgBTS2VH4hHlb+VKg/GPMbPamZBQCEvESk5nmKF3MWv65TIRJ8T9cLtN4Fipqo+uNMCC9HuWZkRB7YzGxnhPUsbQ5/UNPqQDxqD5oJl1wq6hFx1sE6Xz4a9P+otJzoK+e2KDyOHMKEWj17OASeEB/+B8+Jb1zPYsVhPCaQP8LtihFFzUPaEHhbxYyLd5YgvC/fKGRjnbiPOeDkZRuR4+ORxkqiq35AnzAt1kHIJ6rW23FJm5aCVxpSdb8uSYpu68WmGs6vYUw73P4B1o+5q+Nm4w3JuYt/c4UV8YCw0L0bZHCjHDXD1i5BTh0hYd2DrzShvHexFdQCUoGvq0pNqhGraWMZzvI+a5b4SCLdSgUVRcna251AzbvCOjWlFzWr6HXRXspjrwA99Wwsx3Cj5/F8uVxKNLB0yw3rMp6v4cSuWnIYtegbTaUH50jqKCyFoBsYzQwJI16KwpuOmWy5o+pITIWbdYK5BQ2EvQBl5lCqr6qUDhER+rWfpg4mQWENqNu5Zqb4qefDu+tAz/kJIj4AcKcOdSGuOoU1Yx1zX8FAUYs8ZZFPqSCNfuv1wOLRrNWKc2jeCSLFLzu7mH3Rg=
