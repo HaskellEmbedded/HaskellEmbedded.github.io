@@ -1,4 +1,4 @@
-# Only build the source branch.
+# Only build the source branch...
 branches:
   only:
   - source
