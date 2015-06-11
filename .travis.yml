@@ -21,21 +21,21 @@ script:
 # Should after_script actually be after_success?
 after_script:
 - export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
+# Check out the master branch here:
 - export MASTER_DIR=haskellembedded_master
 - pushd ..
 - git clone -b master https://${GH_TOKEN}@${REMOTE} ${MASTER_DIR}
 - popd
-- cp -vr _site/* ${MASTER_DIR}
-- pushd ${MASTER_DIR}
-#- cd _site
-#- git checkout master
-#- git remote add github https://${GH_TOKEN}@${REMOTE}
-#- git add --all
+# Copy the generated code to the master branch:
+- cp -vr _site/* ../${MASTER_DIR}
+- pushd ../${MASTER_DIR}
+# Add everything and commit:
+- git add --all
 - git status
 - export DATE=$(date)
 - git commit -m "Travis build ${TRAVIS_BUILD_NUMBER} on ${DATE}"
 # I assume we have "-v http" to hide the token:
-- git push github master:master | grep -v http
+- git push | grep -v http
 
 env:
   global:
