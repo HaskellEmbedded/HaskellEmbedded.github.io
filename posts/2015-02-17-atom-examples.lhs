@@ -1,3 +1,5 @@
+*Later update: I've tried to introduce some of the documentation and explanation below into the Atom repository, so ignore my complaints of it being undocumented.*
+
 In the [last post][] I talked briefly about Atom ([hackage][atom-hackage] & [github][atom-github]), a Haskell EDSL from [Tom Hawkins][hawkins] for hard realtime embedded software. I aim here to cover more detail.
 
 Background {#background}

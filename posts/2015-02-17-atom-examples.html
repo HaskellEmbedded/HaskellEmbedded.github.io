@@ -62,6 +62,7 @@
     
 </div>
 
+<p><em>Later update: I’ve tried to introduce some of the documentation and explanation below into the Atom repository, so ignore my complaints of it being undocumented.</em></p>
 <p>In the <a href="./2015-02-06-how-i-got-here.html">last post</a> I talked briefly about Atom (<a href="http://hackage.haskell.org/package/atom" title="atom: A DSL for embedded hard realtime applications. (hackage)">hackage</a> &amp; <a href="https://github.com/tomahawkins/atom" title="atom: A DSL for embedded hard realtime applications. (github)">github</a>), a Haskell EDSL from <a href="http://tomahawkins.org/">Tom Hawkins</a> for hard realtime embedded software. I aim here to cover more detail.</p>
 <h1 id="background">Background</h1>
 <p>As that post mentioned, I was running into problems handling concurrency in software for my embedded target (a <a href="https://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF51822">Nordic nRF51822</a>). My embedded software had operations throughout that required some fairly specific timing, for instance:</p>
