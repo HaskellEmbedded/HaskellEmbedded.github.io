@@ -9,8 +9,8 @@ before_script:
 - git config --global user.email "$GIT_EMAIL"
 - git config --global user.name "$GIT_NAME"
 script:
-- cabal sandbox init
-- cabal configure --enable-tests && cabal build && cabal run clean && cabal run build
+- cabal sandbox init && cabal configure --enable-tests && cabal build &&
+  cabal run clean && cabal run build
 before_install:
 # Use sed to replace the SSH URL with the public URL, then initialize submodules
 - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
