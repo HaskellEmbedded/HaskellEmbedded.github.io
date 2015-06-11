@@ -1,23 +1,22 @@
-# The below just generates the site with Hakyll.  It does not (yet) commit and
-# push the generated site anywhere.
-
 language: haskell
 ghc: 7.8
 branches:
   only:
   - source
 script:
-  - cabal configure --enable-tests && cabal build && cabal run build
-# Handle git submodules yourself
+- cabal configure --enable-tests && cabal build && cabal run build
 git:
   submodules: false
-# Use sed to replace the SSH URL with the public URL, then initialize submodules
 before_install:
-  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
-  - git submodule update --init
-
-# TODO:
-# http://docs.travis-ci.com/user/caching/#Arbitrary-directories
-# (Perhaps run in a cabal sandbox, and cache the contents of the sandbox.)
-# http://begriffs.com/posts/2014-08-12-create-static-site-with-hakyll-github.html
-# Whatever is at the above to let this actually commit.
+- sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+- git submodule update --init
+after_script:
+- cd _site
+- export REMOTE=$(git config remote.origin.url | sed 's/.*:\/\///')
+- git remote add github https://${GH_TOKEN}@${REMOTE}
+- git add --all
+- git status
+- git commit -m "Built by Travis ( build $TRAVIS_BUILD_NUMBER )"
+- git push github master:master | grep -v http
+GH_NAME=Chris Hodapp:
+  secure: YmxZEc1cPQT5TPxc6MJGkunQbc9s/ZNU+rBt1WFX0ncIgPD183R2/wamJKu/9+NO1PBYW5A8xdQ/emMmk1Yh3TYYDVy8MiQ6yqyjCZX9YTIFh/T/aCXZvrSuMeNSZLggRtz/lCZfJJoWerBqY+mC7J2TuO1bpTNcCC5rzW1yI5CuH4DzseLOjpghtqF3tTsBR5L2901K00/D1aQHkanrIk1mH1S2TfVmKimlPD1sBgLOP1f6+XJZQXELxUm/jzG5UJg5Vtwi+mkr2RnsQ68zLI3Tk6lh9xsXgrpET0LQaio2dRIfoxzNz/VMzsGfnz50i5z5Wt6bDpowluzer3or9Zv3KiK6UwX0kOZgRECBTAnSW/j3Ch+tLmyM3MT9UIGaX9dETCq2qAB2iI8F1aB8GqnQZvGaU3GIkLSb9DeJgiXrEYjKNIIQ4YK2ItPhEJEK2N6fEaULPnUIn7Pr+J+L5rXAJXDs3VOoY4e6NPYFtrp0SkTCtSfg/JnK8wSmo2na/WkXXxOTiuROBwzcRisaiyav+FogN58sXOIplMtLkf/w9UtRtNq0Hn45xy9aSKIM01I7v/q06TG5aNjn68qmLhYDJhMguOeRPlCRAPpWI8RuVyVbrAwv/Rm+VU8QMaVbnV/coxP4MhtH9DeuT2wUItcE28Rf9UQpinDNjwOG844=
