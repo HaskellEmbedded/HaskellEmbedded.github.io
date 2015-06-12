@@ -97,7 +97,7 @@ Pre & Post Code {#prepost}
 
 The [Hackage documentation]((http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Code.html#t:Config)) defines `cCode` and `hCode` better, including the arguments I'm ignoring. `prePostCode` (the value of `cCode`) provides C code that Atom inserts verbatim above and below the generated C code. `prePostHeader` & `hCode` are the same thing but for the generated C header.
 
-*(As a side note, Shae discovered Uli Köhler's relevant post at Tech Overflow on a cleaner way of expressing the C code: [Using QuasiQuotation for more readable Atom code][quasiquotation-atom])*
+*(As a side note, Shae discovered Uli Köhler's relevant post at Tech Overflow on a cleaner way of expressing the C code: [Using QuasiQuotation for more readable Atom code][quasiquotation-atom].)*
 
 Below begins a pretty minimal implementation for a `main()` function and a simulated sensor.
 
