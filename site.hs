@@ -46,6 +46,10 @@ main = hakyll $ do
             >>= loadAndApplyTemplate "templates/default.html" defaultContext
             >>= relativizeUrls
 
+    match "slides/**" $ version "raw" $ do
+        route idRoute
+        compile copyFileCompiler
+
     -- We want .lhs files to be directly accessible, so copy them through unmodified.
     match "posts/*.lhs" $ version "raw" $ do
         route idRoute
