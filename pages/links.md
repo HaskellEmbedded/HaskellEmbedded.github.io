@@ -31,6 +31,7 @@ Posts reference these links in context, but they are still useful in a central s
     - [Ajhc demo for Cortex-M3/4 board][ajhc-demo-cortex-m3] gives their example of compiling Haskell to an ARM Cortex M3/M4.
     - The 2014 paper [Metasepi Report: Writing NetBSD Sound Drivers in Haskell: A Reentrant Haskell Compiler for Operating Systems Programming][ajhc-clh-paper] from Kiwamu Okabe (METASEPI) and Takayuki Muranushi (Kyotu University) talks about the experiences and challenges with using a Haskell compiler for targeting embedded code.
     - Kiwamu Okabe has a number of presentations up at [SlideShare][masterq-slideshare] about his work with METASEPI and Ajhc.
+- From [fpcomplete][fpcomplete-inline-c] is [inline-c][], which "lets you seamlessly call C libraries and embed high-performance inline C code in Haskell modules".  This isn't specifically for embedded, of course, but it certainly has application there. *(Thank you to @matrixai for [pointing this out](http://haskellembedded.github.io/posts/2015-02-20-atom-part-2-probes.html#comment-2290529866).)* 
 
 # Not Haskell per se, but Haskell-inspired and Haskell-hosted
 - [Idris][] ([hackage][idris-hackage]) is a language from Edwin Brady, "a general purpose language with full dependent types." It is a recent language, but still has many good papers, talks, and references.
@@ -75,3 +76,5 @@ Posts reference these links in context, but they are still useful in a central s
 [ajhc-clh-paper]: http://www.metasepi.org/doc/metasepi-icfp2014.pdf "Metasepi Report: Writing NetBSD Sound Drivers in Haskell (Okabe, K. & Muranushi, T.)"
 [Jhc]: http://repetae.net/computer/jhc/
 [masterq-slideshare]: http://www.slideshare.net/master_q/presentations
+[inline-c]: https://github.com/fpco/inline-c
+[fpcomplete-inline-c]: https://www.fpcomplete.com/blog/2015/05/inline-c
