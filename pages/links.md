@@ -25,6 +25,12 @@ Posts reference these links in context, but they are still useful in a central s
     - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the [Terasic DE0-Nano](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=139&No=593).
 - [The Reduceron][reduceron-original] is some very interesting work with an FPGA softcore for running lazy functional programs.
     - It was forked/revived as a [newer project][practical-reduceron] ([GitHub][reduceron-github]).
+- Conal Elliott worked with a Silicon Valley startup, *Tabula*, on
+  massively-parallel execution of Haskell code on a new FPGA-ish
+  architecture (*Spacetime*), using an approach based on
+  [Cartesian Closed Categories][ccc].  They're now defunct, as far as
+  I know, but supposedly trying to open-source some components.  I'm
+  aware only of [lambda-ccc][].
 
 # Compiling to Embedded Targets
 - The [Jhc][]-based [Ajhc][] compiler ([GitHub][ajhc-github], [Hackage][ajhc-hackage]) is a now defunct-project, but seemed to have the aim of compiling Haskell to various other platforms (especially given their "Haskell everywhere" tag).
@@ -78,3 +84,5 @@ Posts reference these links in context, but they are still useful in a central s
 [masterq-slideshare]: http://www.slideshare.net/master_q/presentations
 [inline-c]: https://github.com/fpco/inline-c
 [fpcomplete-inline-c]: https://www.fpcomplete.com/blog/2015/05/inline-c
+[ccc]: http://conal.net/blog/posts/haskell-to-hardware-via-cccs
+[lambda-ccc]: https://github.com/conal/lambda-ccc/
