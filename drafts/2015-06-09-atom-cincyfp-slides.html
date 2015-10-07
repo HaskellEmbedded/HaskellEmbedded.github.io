@@ -5,7 +5,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - Atom presentation at CincyFP</title>
+        <title>Haskell Embedded Blog - Presentation at CincyFP</title>
         <link href="../css/bootstrap.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <!-- syntax.css is Pandoc's syntax.css file, copied from:
@@ -48,7 +48,7 @@
         </div>
 
         <div id="content">
-            <h1>Atom presentation at CincyFP</h1>
+            <h1>Presentation at CincyFP</h1>
 
             <div class="info">
     Posted on June  9, 2015
@@ -64,11 +64,38 @@
 
 <p><em>Later note: This post is back-dated because while I’d put the slides in the repository already, I had not actually linked to them or said anything about them.</em></p>
 <p>The fine people at <a href="https://cincyfp.wordpress.com/">CincyFP</a>, the local functional programming group, requested that I give a presentation on some of the embedded Haskell stuff I was doing, and I did this at the <a href="https://cincyfp.wordpress.com/2015/06/04/june-meeting-4/">June meeting</a>.</p>
-<p>I put the slides from the presentation up <a href="../slides/20150609_CincyFP/Slides.html">here</a> (and <a href="../slides/20150609_CincyFP/Slides.md">Markdown source</a>; or look <a href="https://github.com/HaskellEmbedded/HaskellEmbedded.github.io/tree/master/slides/20150609_CincyFP">in the repo</a>). CincyFP has a lot of Clojure aficionados, so in terms of Haskell-heavy details I kept this presentation as a “part 1” to some possible future presentations. (Actually, not even that, since the title was “EDSLs &amp; Metaprogramming” and I barely scratched the surface of that.)</p>
+<p>Slides from the presentation are up <a href="../slides/20150609_CincyFP/Slides.html">here</a> (and <a href="../slides/20150609_CincyFP/Slides.md">Markdown source</a>; or look <a href="https://github.com/HaskellEmbedded/HaskellEmbedded.github.io/tree/master/slides/20150609_CincyFP">in the repo</a>). CincyFP seems to have mostly Clojure aficionados, so in terms of Haskell-heavy details I kept this presentation as a “part 1” to some possible future presentations. (Actually, not even that, since the title was “EDSLs &amp; Metaprogramming” and I barely scratched the surface of that.)</p>
+<p>I start walking through a Atom example at slide 9. While I live-coded this at the presentation, I also put my example code online <a href="../slides/20150609_CincyFP/Example.hs">here</a> (and <a href="../slides/20150609_CincyFP/StringEmbed.hs">StringEmbed.hs</a>).</p>
+<p>In trying to explain the different ways Haskell might be used on embedded systems (around slide 2 or so), I refer to similar categories as on the <a href="../pages/links.html">Links</a> page. I find myself having to explain these distinctions quite often, so I am going to try to give some more detail here.</p>
+<p>Those categories are:</p>
+<ol style="list-style-type: decimal">
+<li>Full compilation, reduced runtime approach</li>
+<li>Static analysis approach</li>
+<li>Compiled EDSL approach</li>
+</ol>
+<p>As far as I know, I made these categories up. If anyone happens to know a more established classification, or anyone who wrote about it first, please tell me. Also, I’m excluding things like Cryptol and Idris that only incidentally involve Haskell.</p>
+<h1 id="full-compilation-reduced-runtime">Full Compilation, Reduced Runtime</h1>
+<p>This compiles Haskell code to run directly on an embedded target. The <a href="../pages/links.html#compiling-to-embedded-targets">Compiling to Embedded Targets</a> section of the Links page is concerned particularly with this.</p>
+<p>I’m aware of few successful examples of this (depending on what one means by ‘embedded’), as the nature of the Haskell language brings some challenges. Particularly, one must make the Haskell runtime fit on the target and make the garbage collection behave sanely.</p>
+<p>Ajhc (<a href="https://github.com/ajhc/ajhc" class="uri">https://github.com/ajhc/ajhc</a>), a JHC-derived compiler from Kiwamu Okabe of METASEPI, is the only example of this I found - it could compile and execute on ARM Cortex-M3/M4. His subsequent switch to the ATS language may be a hint.</p>
+<h1 id="static-analysis">Static Analysis</h1>
+<p>This uses an existing compiler for certain stages (such as the parsing and type-checking), but a custom back-end to actually produce code. This may adapt or disallow certain constructs.</p>
+<p>GHC readily accomodates this by allowing developers to invoke GHC functionality, from Haskell, as a library. ([ghcjs][https://github.com/ghcjs/ghcjs] uses this, as far as I know.)</p>
+<p>The <a href="../pages/links.html#compiling-for-fpgaasic">Compiling for FPGA/ASIC</a> section of the Links page has a few examples of this.</p>
+<h1 id="compiled-edsl">Compiled EDSL</h1>
+<p>The <a href="../pages/links.html#code-generation-edsls">Code Generation EDSLs</a> and <a href="../pages/links.html#circuit-design-edsls">Circuit Design EDSLs</a> sections of the Links page cover the copious examples of this. Atom, the topic of a few of my prior posts, is in this category.</p>
+<p>This category is the one I am most often having to explain. It uses an EDSL (embedded domain-specific language) inside of Haskell to direct the process of code generation to a lower-level representation. (Otherwise called: <em>compiling</em>.)</p>
+<p>Note that in this case, Haskell code never actually <em>runs</em> on the embedded target. Rather, it uses specifications in the EDSL to build a representation of what <em>will</em> run there - in other words, a sort of metaprogramming, using Haskell as a template language or macro language.</p>
+<p>To emphasize: The code that runs on the target is entirely decoupled from the Haskell runtime. The Haskell compiler here isn’t compiling anything for the target - it’s compiling another compiler.</p>
+<p>This is a limitation of one sort:</p>
 <ul>
-<li>Things I keep having to explain over and over</li>
-<li>Extended explanation of certain slides</li>
-<li>Link to example code (it’s in the repo)</li>
+<li>Basically all notions of ‘runtime’ on the embedded target must be handled separately. (Ivory works with this still, for instance with the Num typeclass, in some surprising ways. More on that will follow in a future post!)</li>
+<li>This adds the confusion and complication of another stage (possibly more) to the process of bringing code/specifications to the embedded target.</li>
+</ul>
+<p>It’s also a benefit of another sort:</p>
+<ul>
+<li>Any Haskell environment compatible with the libraries in question should produce the same results (as far as the embedded target cares).</li>
+<li>That stage separation also adds a nice opportunity for static analysis and optimization. (For instance, Copilot makes use of this to add an interpreter/simulator, SBV uses it to prove or disprove given properties about the code, and Atom uses it to verify some timing constraints.)</li>
 </ul>
 
         </div>
