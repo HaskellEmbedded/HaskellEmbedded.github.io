@@ -5,7 +5,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - Posts tagged "atom"</title>
+        <title>Haskell Embedded Blog - Presentation at CincyFP</title>
         <link href="../css/bootstrap.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <!-- syntax.css is Pandoc's syntax.css file, copied from:
@@ -48,28 +48,40 @@
         </div>
 
         <div id="content">
-            <h1>Posts tagged "atom"</h1>
+            <h1>Presentation at CincyFP</h1>
 
-            <ul>
+            <div class="info">
+    Posted on June  9, 2015
     
-        <li>
-            <a href="../posts/2015-06-09-atom-cincyfp-slides.html">Presentation at CincyFP</a> - June  9, 2015
-        </li>
+        by Chris Hodapp
     
-        <li>
-            <a href="../posts/2015-02-20-atom-part-2-probes.html">Atom, part 2: Probes</a> - February 20, 2015
-        </li>
+</div>
+<div class="info">
     
-        <li>
-            <a href="../posts/2015-02-17-atom-examples.html">Examples for the Atom library</a> - February 17, 2015
-        </li>
+    Tags: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/atom.html">atom</a>
     
-        <li>
-            <a href="../posts/2015-02-06-how-i-got-here.html">How I Got Here (i.e. to using Haskell for embedded code)</a> - February  6, 2015
-        </li>
-    
-</ul>
+</div>
 
+<p><em>Later note: This post is back-dated because while I’d put the slides in the repository already, I had not actually linked to them or said anything about them.</em></p>
+<p>The fine people at <a href="https://cincyfp.wordpress.com/">CincyFP</a>, the local (to me) functional programming group, requested that I give a presentation on some of the embedded Haskell stuff I was doing, and I did this at the <a href="https://cincyfp.wordpress.com/2015/06/04/june-meeting-4/">June meeting</a> this year.</p>
+<p>Slides from the presentation are up <a href="../slides/20150609_CincyFP/Slides.html">here</a> (and <a href="../slides/20150609_CincyFP/Slides.md">Markdown source</a>; or look <a href="https://github.com/HaskellEmbedded/HaskellEmbedded.github.io/tree/master/slides/20150609_CincyFP">in the repo</a>). CincyFP seems to have mostly Clojure aficionados, so in terms of Haskell-heavy details I kept this presentation as a “part 1” to some possible future presentations. Actually, not even that, since the title was “EDSLs &amp; Metaprogramming” and I only scratched the surface of that.</p>
+<p>I start walking through an Atom example at slide 9. While I live-coded this at the presentation, I have no video or audio. However, I put my example code online <a href="../slides/20150609_CincyFP/Example.hs">here</a> (and <a href="../slides/20150609_CincyFP/StringEmbed.hs">StringEmbed.hs</a>).</p>
+<p>The slides are fairly terse, and I intend to explain bits of them in the next few posts. Particularly, around slide 2, I try to explain a few different broad ways Haskell might be used on embedded systems, and this refers to similar categories as on the <a href="../pages/links.html">Links</a> page. I find myself having to explain these distinctions quite often, so I am going to try to explain this better in posts to come.</p>
+
+
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = 'haskellembedded';
+
+  /* * * DON'T EDIT BELOW THIS LINE * * */
+  (function() {
+  var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
 
         </div>
         <div id="footer">

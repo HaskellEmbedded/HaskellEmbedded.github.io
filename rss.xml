@@ -7,8 +7,33 @@
         <description><![CDATA[A blog about Haskell / functional programming and embedded systems.]]></description>
         <atom:link href="http://haskellembedded.github.io//rss.xml" rel="self"
                    type="application/rss+xml" />
-        <lastBuildDate>Fri, 06 Feb 2015 00:00:00 UT</lastBuildDate>
+        <lastBuildDate>Tue, 09 Jun 2015 00:00:00 UT</lastBuildDate>
         <item>
+    <title>Presentation at CincyFP</title>
+    <link>http://haskellembedded.github.io//posts/2015-06-09-atom-cincyfp-slides.html</link>
+    <description><![CDATA[<div class="info">
+    Posted on June  9, 2015
+    
+        by Chris Hodapp
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="/tags/haskell.html">haskell</a>, <a href="/tags/atom.html">atom</a>
+    
+</div>
+
+<p><em>Later note: This post is back-dated because while I’d put the slides in the repository already, I had not actually linked to them or said anything about them.</em></p>
+<p>The fine people at <a href="https://cincyfp.wordpress.com/">CincyFP</a>, the local (to me) functional programming group, requested that I give a presentation on some of the embedded Haskell stuff I was doing, and I did this at the <a href="https://cincyfp.wordpress.com/2015/06/04/june-meeting-4/">June meeting</a> this year.</p>
+<p>Slides from the presentation are up <a href="../slides/20150609_CincyFP/Slides.html">here</a> (and <a href="../slides/20150609_CincyFP/Slides.md">Markdown source</a>; or look <a href="https://github.com/HaskellEmbedded/HaskellEmbedded.github.io/tree/master/slides/20150609_CincyFP">in the repo</a>). CincyFP seems to have mostly Clojure aficionados, so in terms of Haskell-heavy details I kept this presentation as a “part 1” to some possible future presentations. Actually, not even that, since the title was “EDSLs &amp; Metaprogramming” and I only scratched the surface of that.</p>
+<p>I start walking through an Atom example at slide 9. While I live-coded this at the presentation, I have no video or audio. However, I put my example code online <a href="../slides/20150609_CincyFP/Example.hs">here</a> (and <a href="../slides/20150609_CincyFP/StringEmbed.hs">StringEmbed.hs</a>).</p>
+<p>The slides are fairly terse, and I intend to explain bits of them in the next few posts. Particularly, around slide 2, I try to explain a few different broad ways Haskell might be used on embedded systems, and this refers to similar categories as on the <a href="../pages/links.html">Links</a> page. I find myself having to explain these distinctions quite often, so I am going to try to explain this better in posts to come.</p>
+]]></description>
+    <pubDate>Tue, 09 Jun 2015 00:00:00 UT</pubDate>
+    <guid>http://haskellembedded.github.io//posts/2015-06-09-atom-cincyfp-slides.html</guid>
+    <dc:creator></dc:creator>
+</item>
+<item>
     <title>How I Got Here (i.e. to using Haskell for embedded code)</title>
     <link>http://haskellembedded.github.io//posts/2015-02-06-how-i-got-here.html</link>
     <description><![CDATA[<div class="info">

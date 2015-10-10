@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Haskell Embedded Blog - (something)</title>
+        <link href="../css/bootstrap.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <!-- syntax.css is Pandoc's syntax.css file, copied from:
+             https://github.com/jaspervdj/hakyll/blob/master/web/css/syntax.css
+          -->
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+
+        <link rel="apple-touch-icon" sizes="57x57" href="../apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="../apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="../apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="../apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="../apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="../apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="../apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="../apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon-180x180.png">
+        <link rel="icon" type="image/png" href="../favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="../android-chrome-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="../favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="../favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="../manifest.json">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Haskell Embedded Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../pages/about.html">About</a>
+                <!-- a href="/contact.html">Contact</a -->
+                <a href="../pages/links.html">Links</a>
+                <a href="../archive.html">Archive</a>
+		<a href="../rss.xml">RSS</a>
+		<a href="../atom.xml">ATOM</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>(something)</h1>
+
+            <div class="info">
+    Posted on October  9, 2015
+    
+        by Chris Hodapp
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="../tags/haskell.html">haskell</a>, <a href="../tags/atom.html">atom</a>
+    
+</div>
+
+<p>“The slides are fairly terse, and I intend to explain bits of them in the next few posts. Particularly, around slide 2, I try to explain a few different broad ways Haskell might be used on embedded systems, and this refers to similar categories as on the <a href="../pages/links.html">Links</a> page. I find myself having to explain these distinctions quite often, so I am going to try to explain this better in posts to come.”</p>
+<p>Those categories are:</p>
+<ol style="list-style-type: decimal">
+<li>Full compilation, reduced runtime approach</li>
+<li>Static analysis approach</li>
+<li>Compiled EDSL approach</li>
+</ol>
+<p>As far as I know, I made these categories up. If anyone happens to know a more established classification, or anyone who wrote about it first, please tell me. Also, I’m excluding things like Cryptol and Idris that only incidentally involve Haskell.</p>
+<h1 id="full-compilation-reduced-runtime">Full Compilation, Reduced Runtime</h1>
+<p>This compiles Haskell code to run directly on an embedded target. The <a href="../pages/links.html#compiling-to-embedded-targets">Compiling to Embedded Targets</a> section of the Links page is concerned particularly with this.</p>
+<p>I’m aware of few successful examples of this (depending on what one means by ‘embedded’), as the nature of the Haskell language brings some challenges. Particularly, one must make the Haskell runtime fit on the target and make the garbage collection behave sanely.</p>
+<p>Ajhc (<a href="https://github.com/ajhc/ajhc" class="uri">https://github.com/ajhc/ajhc</a>), a JHC-derived compiler from Kiwamu Okabe of METASEPI, is the only example of this I found - it could compile and execute on ARM Cortex-M3/M4. His subsequent switch to the ATS language may be a hint.</p>
+<h1 id="static-analysis">Static Analysis</h1>
+<p>This uses an existing compiler for certain stages (such as the parsing and type-checking), but a custom back-end to actually produce code. This may adapt or disallow certain constructs.</p>
+<p>GHC readily accomodates this by allowing developers to invoke GHC functionality, from Haskell, as a library. ([ghcjs][https://github.com/ghcjs/ghcjs] uses this, as far as I know.)</p>
+<p>The <a href="../pages/links.html#compiling-for-fpgaasic">Compiling for FPGA/ASIC</a> section of the Links page has a few examples of this.</p>
+<h1 id="compiled-edsl">Compiled EDSL</h1>
+<p>The <a href="../pages/links.html#code-generation-edsls">Code Generation EDSLs</a> and <a href="../pages/links.html#circuit-design-edsls">Circuit Design EDSLs</a> sections of the Links page cover the copious examples of this. Atom, the topic of a few of my prior posts, is in this category.</p>
+<p>This category is the one I am most often having to explain. It uses an EDSL (embedded domain-specific language) inside of Haskell to direct the process of code generation to a lower-level representation. (Otherwise called: <em>compiling</em>.)</p>
+<p>Note that in this case, Haskell code never actually <em>runs</em> on the embedded target. Rather, it uses specifications in the EDSL to build a representation of what <em>will</em> run there - in other words, a sort of metaprogramming, using Haskell as a template language or macro language.</p>
+<p>To emphasize: The code that runs on the target is entirely decoupled from the Haskell runtime. The Haskell compiler here isn’t compiling anything for the target - it’s compiling another compiler.</p>
+<p>This is a limitation of one sort:</p>
+<ul>
+<li>Basically all notions of ‘runtime’ on the embedded target must be handled separately. (Ivory works with this still, for instance with the Num typeclass, in some surprising ways. More on that will follow in a future post!)</li>
+<li>This adds the confusion and complication of another stage (possibly more) to the process of bringing code/specifications to the embedded target.</li>
+</ul>
+<p>It’s also a benefit of another sort:</p>
+<ul>
+<li>Any Haskell environment compatible with the libraries in question should produce the same results (as far as the embedded target cares).</li>
+<li>That stage separation also adds a nice opportunity for static analysis and optimization. (For instance, Copilot makes use of this to add an interpreter/simulator, SBV uses it to prove or disprove given properties about the code, and Atom uses it to verify some timing constraints.)</li>
+</ul>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+        <script src="../js/bootstrap.js"></script>
+    </body>
+</html>
