@@ -28,9 +28,9 @@ something (a program, a circuit, specifications, call it what you
 will) for an embedded target.  More on that follows.
 
 I exclude things like Cryptol and Idris from this because - while
-implemented in Haskell and used for embedded platforms - they are
-different languages unto themselves.  We might arbitrarily drop that
-distinction in the future if we feel like it.
+implemented in Haskell and usable for embedded platforms - they are
+different languages unto themselves.  I might arbitrarily drop that
+distinction in the future if I feel like it...
 
 # Full Compilation
 
@@ -66,7 +66,6 @@ recursive datatypes:
 
 GHC accomodates this by allowing developers to invoke GHC
 functionality, from Haskell, [as a library][ghc-library].
-([ghcjs][https://github.com/ghcjs/ghcjs] uses this, as far as I know.)
 
 The [Compiling for FPGA/ASIC][links-fpga] section of the Links page has
 a few examples of this.
