@@ -5,18 +5,17 @@ author: Chris Hodapp
 tags: haskell, atom
 ---
 
-"The slides are fairly terse, and I intend to explain bits of them in
-the next few posts.  Particularly, around slide 2, I try to explain a
-few different broad ways Haskell might be used on embedded systems,
-and this refers to similar categories as on the [Links][links] page.
-I find myself having to explain these distinctions quite often, so I
-am going to try to explain this better in posts to come."
+My [last post][] mentioned that some things need some better
+explanation, because I'm always trying to re-explain and clarify.
 
-Those categories are:
+This blog is devoted to the use of Haskell with embedded systems.
+What does that even mean?  We interpret it in a pretty open-ended way.
+Particularly, we see a couple broad categories (which the slides on
+the last page, as well as our [Links][links] page, mirror):
 
-1. Full compilation, reduced runtime approach
-2. Static analysis approach
-3. Compiled EDSL approach
+1. Compiling full-fledged Haskell code to an embedded target.
+2. Compiling some subset of Haskell to an embedded target.
+3. Hosting in Haskell an EDSL and a compiler to an embedded target.
 
 As far as I know, I made these categories up.  If anyone happens to
 know a more established classification, or anyone who wrote about it
@@ -96,6 +95,7 @@ It's also a benefit of another sort:
   given properties about the code, and Atom uses it to verify some
   timing constraints.)
 
+[last post]: ../posts/2015-06-09-atom-cincyfp-slides.md
 [links]: ../pages/links.html
 [links-full-compile]: ../pages/links.html#compiling-to-embedded-targets
 [links-fpga]: ../pages/links.html#compiling-for-fpgaasic
