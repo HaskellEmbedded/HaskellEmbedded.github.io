@@ -34,6 +34,9 @@ and this refers to similar categories as on the [Links][links] page.
 I find myself having to explain these distinctions quite often, so I
 am going to try to explain this better in posts to come.
 
+Slide 6 is a little bit misleading.  The next post tries to patch this
+up a bit.
+
 [cincyfp-announcement]: https://cincyfp.wordpress.com/2015/06/04/june-meeting-4/
 [slides-local]: ../slides/20150609_CincyFP/Slides.html
 [slides-markdown-local]: ../slides/20150609_CincyFP/Slides.md
