@@ -7,8 +7,80 @@
         <description><![CDATA[A blog about Haskell / functional programming and embedded systems.]]></description>
         <atom:link href="http://haskellembedded.github.io//rss.xml" rel="self"
                    type="application/rss+xml" />
-        <lastBuildDate>Tue, 09 Jun 2015 00:00:00 UT</lastBuildDate>
+        <lastBuildDate>Fri, 09 Oct 2015 00:00:00 UT</lastBuildDate>
         <item>
+    <title>Embedding Haskell: Compilers, and compiling compilers</title>
+    <link>http://haskellembedded.github.io//posts/2015-10-09-compiler-compilers.html</link>
+    <description><![CDATA[<div class="info">
+    Posted on October  9, 2015
+    
+        by Chris Hodapp
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="/tags/haskell.html">haskell</a>, <a href="/tags/ramblings.html">ramblings</a>
+    
+</div>
+
+<p>My <a href="../posts/2015-06-09-atom-cincyfp-slides.html">last post</a> mentioned that some things need some better explanation, because I’m always trying to re-explain and clarify.</p>
+<p>This blog is devoted to the use of Haskell with embedded systems. What does that even mean? We see a couple broad categories (which the slides on the last page, as well as our <a href="../pages/links.html">Links</a> page, mirror):</p>
+<ol style="list-style-type: decimal">
+<li><em>Full Compilation:</em> Compiling Haskell code to an embedded target.</li>
+<li><em>Limited Compilation:</em> Compiling some limited subset of Haskell code to an embedded target.</li>
+<li><em>Hosted EDSL &amp; Compiler:</em> Hosting, in Haskell, an EDSL and a compiler to an embedded target.</li>
+</ol>
+<p>As far as I know, I made these categories up. If anyone happens to know a more established classification, better names, or an example of who wrote about it first, please tell me.</p>
+<p>This might look like a lopsided, arbitrary grouping; it sort of is. The commonality is that in all cases one uses Haskell to express something (a program, a circuit, specifications, call it what you will) for an embedded target. More on that follows.</p>
+<p>I exclude things like Cryptol and Idris from this because - while implemented in Haskell and usable for embedded platforms - they are different languages unto themselves. I might arbitrarily drop that distinction in the future if I feel like it…</p>
+<h1 id="full-compilation">Full Compilation</h1>
+<p>This is what normally comes to mind when people hear about using Haskell with embedded systems - compiling the Haskell code to run directly on an embedded target, bringing along the normal runtime with it (plus whatever required bootstrapping and support). The <a href="../pages/links.html#compiling-to-embedded-targets">Compiling to Embedded Targets</a> section of the Links page is concerned particularly with this.</p>
+<p>However, this actually appears to be pretty rare. The nature of the Haskell language brings some formidable challenges. Particularly, one must make the Haskell runtime fit on the target and make the garbage collection and lazy evaluation behave in predictable and sane ways.</p>
+<p>Ajhc (<a href="https://github.com/ajhc/ajhc" class="uri">https://github.com/ajhc/ajhc</a>), a JHC-derived compiler from Kiwamu Okabe of METASEPI, is the only example of this I found - it could compile and execute on ARM Cortex-M3/M4. Kiwamu has written a lot on his experiences with making Haskell run in this footprint. His subsequent switch to the ATS language may be a hint.</p>
+<p><a href="https://github.com/galoisinc/halvm">HaLVM</a> from Galois might arguably fit in this category.</p>
+<h1 id="limited-compilation">Limited Compilation</h1>
+<p>This uses an existing compiler for certain stages (such as the parsing and type-checking), but a custom back-end to actually produce code, often with a lot of static analysis. This may adapt or disallow certain constructs (for instance, floating-point, recursive functions, recursive datatypes: <a href="http://hackage.haskell.org/package/clash-prelude-0.10/docs/CLaSH-Tutorial.html#unsupported">CλaSH Unsupported Haskell features</a>).</p>
+<p>GHC accomodates this by allowing developers to invoke GHC functionality, from Haskell, <a href="https://wiki.haskell.org/GHC/As_a_library">as a library</a>.</p>
+<p>The <a href="../pages/links.html#compiling-for-fpgaasic">Compiling for FPGA/ASIC</a> section of the Links page has a few examples of this.</p>
+<h1 id="hosted-edsl-compiler">Hosted EDSL &amp; Compiler</h1>
+<p>The <a href="../pages/links.html#code-generation-edsls">Code Generation EDSLs</a> and <a href="../pages/links.html#circuit-design-edsls">Circuit Design EDSLs</a> sections of the Links page cover the copious examples of this. Atom, the topic of a few of my <a href="../posts/2015-02-17-atom-examples.lhs">prior posts</a>, is in this category.</p>
+<p>This category is the one I am most often having to explain. It typically uses an EDSL (embedded domain-specific language) inside of Haskell to direct the process of code generation to a lower-level representation. This is otherwise called: <em>compiling</em>.</p>
+<p>To emphasize: The code that runs on the target is <em>entirely decoupled from the Haskell runtime</em>. The Haskell compiler here isn’t compiling anything for the target - it’s compiling another compiler and the input to that compiler. That input happens to be specifications of what <em>will</em> run on the target.</p>
+<p>This is a limitation of one sort:</p>
+<ul>
+<li>Basically all notions of ‘runtime’ on the embedded target must be handled separately. (Ivory works with this still, for instance with the <a href="https://hackage.haskell.org/package/base/docs/Prelude.html#t:Num">Num</a> typeclass, in some surprising ways. More on that will follow in a future post!)</li>
+<li>This adds the confusion and complication of another stage (possibly multiple stages) to the process of bringing code/specifications to the embedded target. This is why I use <a href="http://shakebuild.com/">Shake</a>.</li>
+</ul>
+<p>It’s also a benefit of another sort:</p>
+<ul>
+<li>Any Haskell environment compatible with the libraries in question should produce the same results (as far as the embedded target cares). Its runtime does not matter, nor whether the environment has any knowledge of the architecture of the embedded target.</li>
+<li>That stage separation also adds a nice opportunity for static analysis and optimization. For instance, Copilot makes use of this to add an interpreter/simulator, SBV uses it to prove or disprove given properties about the code, and Atom uses it to verify some timing constraints.</li>
+</ul>
+<p>I said in the <a href="../posts/2015-06-09-atom-cincyfp-slides.html">last post</a> that in this category Haskell takes on the role of a metaprogramming or template language. While this may be true, I sort of ignored that it’s less relevant, because it’s the same in all the other categories.</p>
+<h1 id="commonality">Commonality</h1>
+<p>Lumping together these categories might seem like a stretch, especially considering that the last category involves extra stages and a shift in how one thinks about the software.</p>
+<p>Ponder the following, though:</p>
+<ul>
+<li>A “normal” Haskell program interacts through what is sequenced in the famous <a href="https://hackage.haskell.org/package/base/docs/System-IO.html">IO</a> monad (particularly, the value called <code>main</code>).</li>
+<li>An Atom specification interacts through what is sequenced in the <a href="https://hackage.haskell.org/package/atom-1.0.13/docs/Language-Atom.html#t:Atom">Atom</a> monad (particularly, whichever values one passes to the <a href="https://hackage.haskell.org/package/atom-1.0.13/docs/Language-Atom.html#g:2">Atom compiler</a>).</li>
+<li>An Ivory program interacts through what is sequenced in the <a href="https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Ivory">Ivory eff</a> and <a href="https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Module">Module</a> monads (particularly, whichever values one passes to the <a href="https://hackage.haskell.org/package/ivory-backend-c-0.1.0.1/docs/Ivory-Compile-C.html">Ivory compiler</a>).</li>
+<li>A <a href="http://www.clash-lang.org/">CλaSH</a> description interacts through the <a href="https://hackage.haskell.org/package/clash-prelude-0.10/docs/CLaSH-Signal.html#t:Signal">Signal</a> applicative (particularly, the value called <a href="https://hackage.haskell.org/package/clash-prelude-0.10/docs/CLaSH-Annotations-TopEntity.html">topEntity</a>).</li>
+</ul>
+<p>Is a trend clear? (No, it’s not monads. <a href="https://hackage.haskell.org/package/clash-prelude-0.10/docs/CLaSH-Signal.html#t:Signal">Signal</a> is only applicative, and I suspect Lava behaves similarly.)</p>
+<p>That list spans our three categories. In each of them, one builds up a program (in a very broad sense) simply by building up a value in Haskell. Beyond that, the only real differences are,</p>
+<ul>
+<li>the type of that value,</li>
+<li>what system handles it (the Haskell compiler and runtime, some other compiler and maybe runtime, or a combination thereof),</li>
+<li>and the eventual output (native binary, LLVM bitcode, C code, VHDL code, assembly language, input to a model checker, etc.).</li>
+</ul>
+<p>Ignoring the vague nature of the term, “declarative,” this relates pretty directly to the <em>declarative</em> nature of Haskell programs.</p>
+<p>Seen from this perspective, one is still <em>compiling Haskell</em> to run on some embedded target. The compilation just might continue outside of the system’s Haskell compiler, and the running might not involve its runtime.</p>
+]]></description>
+    <pubDate>Fri, 09 Oct 2015 00:00:00 UT</pubDate>
+    <guid>http://haskellembedded.github.io//posts/2015-10-09-compiler-compilers.html</guid>
+    <dc:creator></dc:creator>
+</item>
+<item>
     <title>Presentation at CincyFP</title>
     <link>http://haskellembedded.github.io//posts/2015-06-09-atom-cincyfp-slides.html</link>
     <description><![CDATA[<div class="info">
