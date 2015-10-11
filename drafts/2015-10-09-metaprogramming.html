@@ -62,12 +62,12 @@
     
 </div>
 
-<p>“The slides are fairly terse, and I intend to explain bits of them in the next few posts. Particularly, around slide 2, I try to explain a few different broad ways Haskell might be used on embedded systems, and this refers to similar categories as on the <a href="../pages/links.html">Links</a> page. I find myself having to explain these distinctions quite often, so I am going to try to explain this better in posts to come.”</p>
-<p>Those categories are:</p>
+<p>My <a href="../posts/2015-06-09-atom-cincyfp-slides.md">last post</a> mentioned that some things need some better explanation, because I’m always trying to re-explain and clarify.</p>
+<p>This blog is devoted to the use of Haskell with embedded systems. What does that even mean? We interpret it in a pretty open-ended way. Particularly, we see a couple broad categories (which the slides on the last page, as well as our <a href="../pages/links.html">Links</a> page, mirror):</p>
 <ol style="list-style-type: decimal">
-<li>Full compilation, reduced runtime approach</li>
-<li>Static analysis approach</li>
-<li>Compiled EDSL approach</li>
+<li>Compiling full-fledged Haskell code to an embedded target.</li>
+<li>Compiling some subset of Haskell to an embedded target.</li>
+<li>Hosting in Haskell an EDSL and a compiler to an embedded target.</li>
 </ol>
 <p>As far as I know, I made these categories up. If anyone happens to know a more established classification, or anyone who wrote about it first, please tell me. Also, I’m excluding things like Cryptol and Idris that only incidentally involve Haskell.</p>
 <h1 id="full-compilation-reduced-runtime">Full Compilation, Reduced Runtime</h1>
