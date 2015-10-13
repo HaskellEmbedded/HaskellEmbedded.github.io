@@ -27,5 +27,7 @@ possible).
 - Compatibility tests of some libraries with other Haskell
 implementations (JHC/Ajhc? UHC? Hugs? Frege?)
 - Arduino examples with Ivory?
+- Any sort of write-up or example about SBV - which, luckily, is
+excellently-documented and was updated recently.
 
 [shake-language-c]: https://hackage.haskell.org/package/shake-language-c
