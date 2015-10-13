@@ -1,3 +1,10 @@
+---
+title: Post ideas
+date: October 9, 2015
+author: All
+tags: 
+---
+
 # shapr
 - Firmata post!
 
