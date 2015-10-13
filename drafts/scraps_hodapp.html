@@ -5,7 +5,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>Haskell Embedded Blog - How I Got Here (i.e. to using Haskell for embedded code)</title>
+        <title>Haskell Embedded Blog - Scraps of other posts</title>
         <link href="../css/bootstrap.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="../css/default.css" />
         <!-- syntax.css is Pandoc's syntax.css file, copied from:
@@ -48,7 +48,7 @@
         </div>
 
         <div id="content">
-            <h1>How I Got Here (i.e. to using Haskell for embedded code)</h1>
+            <h1>Scraps of other posts</h1>
 
             <div class="info">
     Posted on May  9, 2015
@@ -103,6 +103,11 @@
 <h1 id="abstract-scraps">Abstract scraps</h1>
 <p>I should explore more the notion of ‘lifting’ a lower-level language up into Haskell, enabling Haskell as a template, macro, or metaprogramming language. (I’m not sure which term fits best there.)</p>
 <p>The paper <a href="http://research.microsoft.com/en-us/um/people/nick/coqasm.pdf">Coq: The world’s best macro assembler?</a> uses both ‘metaprogramming’ and ‘macro’ to refer to this. However, the terms may differ based on the level of the language. Ivory, for instance, lifts a representation of the C language up into Haskell, and it generates C. Atom generates C, but what it provides in Haskell is a representation of a more constrained abstraction, so it is not simply a matter of saying that it lifts the lower-level language up to the level of Haskell.</p>
+<h1 id="ivory-scraps">Ivory scraps</h1>
+<p>One thing I see is that Ivory has embedded a “dumber” type system into Haskell’s. Some types have a runtime meaning in Haskell, and those have a runtime meaning in C in certain cases. Those cases include most numeric values, some lists of the same, and strings.</p>
+<p>It doesn’t include functions, tuples, anything polymorphic, algebraic data types, records, and really any inductive type (except numeric lists).</p>
+<p>But, some types with a runtime meaning in Haskell also have a compile-time meaning in C. That is, C code is a first-class value, as are C functions, and, to an extent, C files/modules.</p>
+<p>Is the confusion/clumsiness because of the similarities to Haskell that are limited?</p>
 
         </div>
         <div id="footer">
