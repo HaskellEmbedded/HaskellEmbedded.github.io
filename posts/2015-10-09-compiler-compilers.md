@@ -46,8 +46,7 @@ Haskell language brings some formidable challenges.  Particularly, one
 must make the Haskell runtime fit on the target and make the garbage
 collection and lazy evaluation behave in predictable and sane ways.
 
-Ajhc ([https://github.com/ajhc/ajhc](https://github.com/ajhc/ajhc)), a
-JHC-derived compiler from Kiwamu Okabe of METASEPI, is the only
+[Ajhc][], a [JHC][]-derived compiler from Kiwamu Okabe of METASEPI, is the only
 example of this I found - it could compile and execute on ARM
 Cortex-M3/M4.  Kiwamu has written a lot on his experiences with making
 Haskell run in this footprint.  His subsequent switch to the ATS
@@ -159,6 +158,7 @@ some embedded target.  The compilation just might continue outside of
 the system's Haskell compiler, and the running might not involve its
 runtime.
 
+[ajhc]: https://github.com/ajhc/ajhc
 [atom compiler]: https://hackage.haskell.org/package/atom-1.0.13/docs/Language-Atom.html#g:2
 [atom-last-post]: ../posts/2015-02-17-atom-examples.lhs
 [atom]: https://hackage.haskell.org/package/atom-1.0.13/docs/Language-Atom.html#t:Atom
@@ -171,6 +171,7 @@ runtime.
 [ivory eff]: https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Ivory
 [ivory-compiler]: https://hackage.haskell.org/package/ivory-backend-c-0.1.0.1/docs/Ivory-Compile-C.html
 [ivory-module]: https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Module
+[jhc]: http://repetae.net/computer/jhc/
 [last post]: ../posts/2015-06-09-atom-cincyfp-slides.html
 [links-circuit]: ../pages/links.html#circuit-design-edsls
 [links-codegen]: ../pages/links.html#code-generation-edsls
