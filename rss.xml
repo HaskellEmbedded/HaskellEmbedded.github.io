@@ -7,8 +7,101 @@
         <description><![CDATA[A blog about Haskell / functional programming and embedded systems.]]></description>
         <atom:link href="http://haskellembedded.github.io//rss.xml" rel="self"
                    type="application/rss+xml" />
-        <lastBuildDate>Fri, 09 Oct 2015 00:00:00 UT</lastBuildDate>
+        <lastBuildDate>Tue, 15 Dec 2015 00:00:00 UT</lastBuildDate>
         <item>
+    <title>ARMing Haskell</title>
+    <link>http://haskellembedded.github.io//posts/2015-12-15-arm.html</link>
+    <description><![CDATA[<div class="info">
+    Posted on December 15, 2015
+    
+        by Calvin Beck
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="/tags/Haskell.html">Haskell</a>, <a href="/tags/ARM.html">ARM</a>, <a href="/tags/QEMU.html">QEMU</a>, <a href="/tags/Raspberry%20Pi.html">Raspberry Pi</a>
+    
+</div>
+
+<p>I have spent the last few weeks desperately trying to get Haskell working on a Raspberry Pi 2 with Raspbian (Jessie). I have had… <a href="https://twitter.com/Chobbez/status/672209942686752768">some</a> <a href="https://twitter.com/Chobbez/status/672178036612005889">problems</a></p>
+<h1 id="cross-compilation">Cross-Compilation</h1>
+<p>There are a few useful guides available for setting up cross-compilation:</p>
+<ul>
+<li>https://github.com/ku-fpg/raspberry-pi/wiki/GHC-Cross-Compiler-for-Raspberry-Pi</li>
+<li>https://ghc.haskell.org/trac/ghc/wiki/Building/Preparation/RaspberryPi</li>
+</ul>
+<p>It’s fairly easy to get a cross-compiler up and running, as long as you carefully follow instructions. This is all well and good, but there are still issues with Template Haskell. Template Haskell essentially requires that you can run code built from the compiler on the system running the compiler. Roughly speaking Template Haskell uses Haskell code to generate more Haskell during compilation. Since you can’t run an ARM executable on x86 / x86_64, you can’t compile anything that uses Template Haskell with the cross-compiler as of yet. More on this later.</p>
+<p>In addition to the lack of Template Haskell, there are <a href="https://ghc.haskell.org/trac/ghc/ticket/9689">problems with certain FFI libraries, like zlib</a>. So, while my 7.10.2 can produce an acceptable ARM “Hello, World!”, I can’t compile my more complicated project. Thus I am forced to look for another option!</p>
+<h1 id="running-on-the-raspberry-pi">Running on the Raspberry Pi</h1>
+<p>Raspbian has an old version of GHC in its repos, GHC 7.6.3, which works with simple pieces of code. For instance “Hello, World!” might compile and run perfectly well. However, my small image processing program encountered nasty, randomly changing, run time errors, and segmentation faults. Sometimes, if the stars aligned, the program would run to completion producing correct results, other times it seemed to loop forever. This is not good. One such error that I received was:</p>
+<pre><code>allocGroup: free list corrupted</code></pre>
+<p>which, if we look at the <a href="https://github.com/ghc/ghc/blob/ghc-7.6/rts/sm/BlockAlloc.c#L383">source code</a>, should definitely never happen. Everything that is happening here <em>SCREAMS</em> that memory is getting stomped on somewhere. This is not something which is going to be easy to debug as the problem could quite literally be anywhere in the code, or in fact in a different library entirely. Not good.</p>
+<h2 id="what-about-a-newer-compiler">What about a newer compiler?</h2>
+<p>So, the Raspbian compiler is horribly ill, and we have to try something different. I attempted to compile GHC from scratch, but this is an effort which takes a very long time on a Raspberry Pi, and after fixing build errors I still had issues. Fortunately since GHC 7.10.2 there are <a href="https://www.haskell.org/ghc/download_ghc_7_10_3#linux_armv7">binaries for ARMv7</a>. Additionally, I found a guide which suggested that there were no issues on a <a href="https://www.scaleway.com/">Scaleway server</a>:</p>
+<p>http://statusfailed.com/blog/2015/11/29/haskell-and-servant-on-scaleway-arm-servers.html</p>
+<p>Following these suggestions I was able to install 7.10.2, and 7.10.3 on the Raspberry Pi. Unfortunately these compilers have given me quite a bit of grief, as I am incapable of producing a working “Hello, World!” with them (despite the 7.10.2 cross-compiler working just fine for this):</p>
+<p>https://ghc.haskell.org/trac/ghc/ticket/11190</p>
+<p>Cabal-install hangs, and this too is a dead end for me.</p>
+<h1 id="qemu">QEMU</h1>
+<p>QEMU is an attractive option. We can emulate an ARM machine on a fast x86 processor, which may be faster. At any rate it’s nice to be able to compile, and even test ARM binaries, on your development system, without having to dedicate a Raspberry Pi as a build bot. I only have access to one Raspberry Pi 2 at the moment, and it’s occupied with work stuff. QEMU would make things easier, and hell, it might even work.</p>
+<h1 id="qemu-system-emulation">QEMU System Emulation</h1>
+<p>This is also a dead end. I am horrendously bad at getting QEMU machine emulation to work. I got it working with Raspbian Wheezy, but it wouldn’t work with Jessie for some reason. I spent a lot of time trying to get an ARM machine emulated, but all of the guides are filled with archaic options, vmlinuz kernels, and magic. Ultimately nothing worked, and this was a huge waste of time that would be slow anyway. <a href="https://twitter.com/Chobbez/status/675573353898315776">Here be dragons. All who dare enter should beware.</a></p>
+<h1 id="qemu-user-emulation">QEMU User Emulation</h1>
+<p>Initially I thought that system emulation would be much easier to set up and get working than user emulation. I was wrong. QEMU system emulation will emulate an entire ARM machine, whereas user emulation essentially just lets you run ARM binaries on a different machine as a regular user process. User emulation translates all of the instructions, and sys-calls, but uses the same kernel and filesystem as before. This is cool. What’s especially cool is that Linux has a feature called <a href="https://en.wikipedia.org/wiki/Binfmt_misc">binfmt_misc</a>, which lets you run arbitrary executable formats. So, we can actually get our normal x86 / x86_64 Linux system to transparently execute ARM binaries. Essentially we use <code>binfmt_misc</code> to tell the kernel to run ARM executables with the <code>qemu-arm</code> program. This is pretty awesome.</p>
+<p>There are some interesting possibilities with this, as we might be able to leverage this to make the cross compiler work with Template Haskell. After turning this on, instead of getting <code>Exec format error</code>’s with Template Haskell and the cross compiler, it was instead complaining about missing ARM libraries. Cool. This is something that might be worth exploring at a later date, but I don’t really want to mess with mixing ARM and x86_64 binaries on my computer. That’s bad mojo. Worth messing with in the future, because it has the possibility of being faster, but it’s probably filled with caveats and it seems a bit scary.</p>
+<p>So, what’s the next best option? How about a <code>chroot</code>!? Yeah. That’ll work. So, here’s the plan! In order to make sure we get all of the ARM libraries we need, we’ll just install an ARM Linux distribution in a <code>chroot</code>, and use <code>binfmt_misc</code> and <code>qemu-arm</code> to transparently execute any ARM binaries in the <code>chroot</code>. I got some information for how to set up <code>binfmt_misc</code> on Gentoo here:</p>
+<p>https://wiki.gentoo.org/wiki/Crossdev_qemu-static-user-chroot</p>
+<p>This guide seems to be doing more complicated stuff with LXC, which I don’t really understand, so I have deviated and just went with a simple <code>chroot</code> Linux install. I’m going to install Gentoo, because it’s what I know, and I find that it doesn’t hide problems from me, and it will let me try different versions of LLVM and other libraries which might be causing problems quite easily.</p>
+<p>We need access to <code>qemu-arm</code> in our chroot if we want to use it to run ARM binaries. The simple way to do this is to statically link <code>qemu-arm</code>, which will allow us to copy the <code>qemu-arm</code> binary into the chroot, and not have to worry about copying any dynamically loaded libraries as well. In order to do this on Gentoo we simply add the <a href="https://wiki.gentoo.org/wiki/QEMU#Miscellaneous">static-user</a> use flag to the <code>qemu</code> package, your distro may vary. We can check that we are good to go with <code>ldd</code>:</p>
+<pre><code>$ ldd `which qemu-arm`
+    not a dynamic executable</code></pre>
+<p>Looking good! Make sure you set up <code>binfmt_misc</code> first, but now we can make our chroot.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># First we make the directory for our chroot:</span>
+<span class="kw">mkdir</span> ~/arm-chroot
+<span class="kw">cd</span> ~/arm-chroot
+
+<span class="co"># Get the Gentoo stage3</span>
+<span class="kw">wget</span> http://distfiles.gentoo.org/releases/arm/autobuilds/20151116/stage3-armv7a_hardfp-20151116.tar.bz2
+<span class="kw">tar</span> -xjf stage3-armv7a_hardfp-20151116.tar.bz2
+
+<span class="co"># Then we do the magical mounting: https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Base#Mounting_the_necessary_filesystems</span>
+<span class="kw">mount</span> -t proc proc proc
+<span class="kw">mount</span> --rbind /sys /sys
+<span class="kw">mount</span> --make-rslave sys
+<span class="kw">mount</span> --rbind /dev dev
+<span class="kw">mount</span> --make-rslave dev
+
+<span class="co"># And now we chroot!</span>
+<span class="kw">sudo</span> -s
+<span class="kw">chroot</span> . /bin/bash
+
+<span class="co"># At this point you can pretty much just follow the Gentoo Handbook https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Base#Configuring_Portage</span>
+<span class="kw">emerge-webrsync</span>
+<span class="kw">emerge</span> --sync
+
+<span class="co"># ...</span>
+<span class="co"># Configure the system how you want...</span>
+<span class="co"># ...</span>
+
+<span class="co"># Now we can install whatever we need for GHC, like LLVM</span>
+<span class="kw">emerge</span> -a llvm binutils zlib
+
+<span class="co"># Grab and install GHC ARMv7 binaries...</span>
+<span class="kw">wget</span> http://downloads.haskell.org/~ghc/7.10.3/ghc-7.10.3-armv7-deb8-linux.tar.bz2
+<span class="kw">tar</span> -xjf ghc-7.10.3-armv7-deb8-linux.tar.bz2
+<span class="kw">cd</span> ghc-7.10.3
+<span class="kw">./configure</span>
+<span class="kw">make</span> install</code></pre></div>
+<p>As of this point in time I still encounter <a href="https://ghc.haskell.org/trac/ghc/ticket/11190">the same problem as on the Raspberry Pi</a> with the <code>qemu-arm</code> GHC, and I have not been able to install <code>cabal-install</code> yet. The Gentoo ebuild for <code>GHC</code> failed for me, but it might be worth attempting a compile from source.</p>
+<h1 id="current-status">Current Status</h1>
+<p>At this point, several weeks later, I am still unable to do Haskell development on ARM, despite the fact that others seem to have had success. I have had a conversation with <a href="https://twitter.com/dhess/status/675142967158571009">somebody on Twitter whom has found success</a> with <a href="https://www.scaleway.com/">Scaleway servers</a> and a <a href="http://beagleboard.org/black">Beaglebone Black</a>, but I am as yet unsuccessful! Surely I must be missing something!</p>
+<p>So, uh… Any suggestions? :)</p>
+]]></description>
+    <pubDate>Tue, 15 Dec 2015 00:00:00 UT</pubDate>
+    <guid>http://haskellembedded.github.io//posts/2015-12-15-arm.html</guid>
+    <dc:creator></dc:creator>
+</item>
+<item>
     <title>Embedding Haskell: Compilers, and compiling compilers</title>
     <link>http://haskellembedded.github.io//posts/2015-10-09-compiler-compilers.html</link>
     <description><![CDATA[<div class="info">
