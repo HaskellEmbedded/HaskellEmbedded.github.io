@@ -10,7 +10,7 @@
     </author>
     <updated>2015-12-15T00:00:00Z</updated>
     <entry>
-    <title>2015-12-15-arm</title>
+    <title>ARMing Haskell</title>
     <link href="http://haskellembedded.github.io//posts/2015-12-15-arm.html" />
     <id>http://haskellembedded.github.io//posts/2015-12-15-arm.html</id>
     <published>2015-12-15T00:00:00Z</published>
@@ -18,14 +18,15 @@
     <summary type="html"><![CDATA[<div class="info">
     Posted on December 15, 2015
     
+        by Calvin Beck
+    
 </div>
 <div class="info">
     
-    Tags: 
+    Tags: <a href="/tags/Haskell.html">Haskell</a>, <a href="/tags/ARM.html">ARM</a>, <a href="/tags/QEMU.html">QEMU</a>, <a href="/tags/Raspberry%20Pi.html">Raspberry Pi</a>
     
 </div>
 
-<p>-– title: ARMing Haskell date: December 15, 2015 author: Calvin Beck tags: Haskell, ARM, QEMU, Raspberry Pi —</p>
 <p>I have spent the last few weeks desperately trying to get Haskell working on a Raspberry Pi 2 with Raspbian (Jessie). I have had… <a href="https://twitter.com/Chobbez/status/672209942686752768">some</a> <a href="https://twitter.com/Chobbez/status/672178036612005889">problems</a></p>
 <h1 id="cross-compilation">Cross-Compilation</h1>
 <p>There are a few useful guides available for setting up cross-compilation:</p>
@@ -68,7 +69,7 @@
 <span class="kw">tar</span> -xjf stage3-armv7a_hardfp-20151116.tar.bz2
 
 <span class="co"># Copy qemu-arm into the chroot, so we can use ARM binaries when chrooted.</span>
-<span class="kw">cp</span> /usr/bin/qemu-arm ~/arm-chroot/usr/bin/qemu-arm
+<span class="kw">cp</span> <span class="kw">`which</span> qemu-arm<span class="kw">`</span> ~/arm-chroot/usr/bin/qemu-arm
 
 <span class="co"># Then we do the magical mounting: https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Base#Mounting_the_necessary_filesystems</span>
 <span class="kw">mount</span> -t proc proc proc
