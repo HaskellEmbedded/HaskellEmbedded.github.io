@@ -68,7 +68,7 @@
 <span class="kw">tar</span> -xjf stage3-armv7a_hardfp-20151116.tar.bz2
 
 <span class="co"># Copy qemu-arm into the chroot, so we can use ARM binaries when chrooted.</span>
-<span class="kw">cp</span> <span class="kw">`which</span> qemu-arm<span class="kw">`</span> ~/arm-chroot/usr/bin/qemu-arm
+<span class="kw">cp</span> /usr/bin/qemu-arm ~/arm-chroot/usr/bin/qemu-arm
 
 <span class="co"># Then we do the magical mounting: https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Base#Mounting_the_necessary_filesystems</span>
 <span class="kw">mount</span> -t proc proc proc
