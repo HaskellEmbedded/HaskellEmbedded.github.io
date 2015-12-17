@@ -47,7 +47,7 @@
 <p>Following these suggestions I was able to install 7.10.2, and 7.10.3 on the Raspberry Pi. Unfortunately these compilers have given me quite a bit of grief, as I am incapable of producing a working “Hello, World!” with them (despite the 7.10.2 cross-compiler working just fine for this):</p>
 <p><a href="https://ghc.haskell.org/trac/ghc/ticket/11190" class="uri">https://ghc.haskell.org/trac/ghc/ticket/11190</a></p>
 <p>Cabal-install hangs, and this too is a dead end for me.</p>
-<p>Or, it would be if it wasn’t for Ben Gamari, who replied to <a href="https://ghc.haskell.org/trac/ghc/ticket/11190">my issue in the GHC trac</a>. As it turns out the LLVM version available with Raspbian is 3.5.0. This version has an issue on ARM which breaks the binaries that GHC spits out. Upgrading to 3.5.2 should fix this problem!</p>
+<p>Or it would be if it wasn’t for Ben Gamari, who replied to <a href="https://ghc.haskell.org/trac/ghc/ticket/11190">my issue in the GHC trac</a>. As it turns out the LLVM version available with Raspbian is 3.5.0. This version has an issue on ARM which breaks the binaries that GHC spits out. Upgrading to 3.5.2 should fix this problem!</p>
 <h1 id="qemu">QEMU</h1>
 <p>QEMU is an attractive option. We can emulate an ARM machine on a fast x86 processor, which may be faster. At any rate it’s nice to be able to compile, and even test ARM binaries, on your development system, without having to dedicate a Raspberry Pi as a build bot. I only have access to one Raspberry Pi 2 at the moment, and it’s occupied with work stuff. QEMU would make things easier, and hell, it might even work.</p>
 <h1 id="qemu-system-emulation">QEMU System Emulation</h1>
@@ -117,7 +117,7 @@
 <ul>
 <li>There would still be caveats.</li>
 <li>This would be much faster than emulating the compiler, though.</li>
-<li>Perhaps there is a way to get <code>qemu-arm</code> to use a different path for dynamic libraries, so you can have ARM libraries somewhere nice and separate</li>
+<li>Perhaps there is a way to get <code>qemu-arm</code> to use a different path for dynamic libraries, so you can have ARM libraries somewhere nice and separate.</li>
 </ul></li>
 <li><a href="https://wiki.gentoo.org/wiki/Project:Prefix">Gentoo Prefix</a> might be a bit nicer than a chroot.</li>
 </ul>
