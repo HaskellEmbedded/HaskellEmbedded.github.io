@@ -63,6 +63,9 @@
 </div>
 
 <p>I have spent the last few weeks desperately trying to get Haskell working on a Raspberry Pi 2 with Raspbian (Jessie). I have had… <a href="https://twitter.com/Chobbez/status/672209942686752768">some</a> <a href="https://twitter.com/Chobbez/status/672178036612005889">problems</a></p>
+<ul>
+<li>Edit 2015-12-16: Thanks to the help of the wonderful Haskell community, my issues have been resolved. Make sure you have LLVM 3.5.2, or you may encounter the same problems that I did! *</li>
+</ul>
 <h1 id="cross-compilation">Cross-Compilation</h1>
 <p>There are a few useful guides available for setting up cross-compilation:</p>
 <ul>
@@ -81,6 +84,7 @@
 <p>Following these suggestions I was able to install 7.10.2, and 7.10.3 on the Raspberry Pi. Unfortunately these compilers have given me quite a bit of grief, as I am incapable of producing a working “Hello, World!” with them (despite the 7.10.2 cross-compiler working just fine for this):</p>
 <p><a href="https://ghc.haskell.org/trac/ghc/ticket/11190" class="uri">https://ghc.haskell.org/trac/ghc/ticket/11190</a></p>
 <p>Cabal-install hangs, and this too is a dead end for me.</p>
+<p>Or, it would be if it wasn’t for Ben Gamari, who replied to <a href="https://ghc.haskell.org/trac/ghc/ticket/11190">my issue in the GHC trac</a>. As it turns out the LLVM version available with Raspbian is 3.5.0. This version has an issue on ARM which breaks the binaries that GHC spits out. Upgrading to 3.5.2 should fix this problem!</p>
 <h1 id="qemu">QEMU</h1>
 <p>QEMU is an attractive option. We can emulate an ARM machine on a fast x86 processor, which may be faster. At any rate it’s nice to be able to compile, and even test ARM binaries, on your development system, without having to dedicate a Raspberry Pi as a build bot. I only have access to one Raspberry Pi 2 at the moment, and it’s occupied with work stuff. QEMU would make things easier, and hell, it might even work.</p>
 <h1 id="qemu-system-emulation">QEMU System Emulation</h1>
@@ -125,6 +129,9 @@
 <span class="co"># Configure the system how you want...</span>
 <span class="co"># ...</span>
 
+<span class="co"># Note that we need LLVM version 3.5.2, which you may need to add to package.accept_keywords</span>
+<span class="kw">echo</span> <span class="st">&quot;=sys-devel/llvm-3.5.2 **&quot;</span> <span class="kw">&gt;&gt;</span> /etc/portage/package.accept_keywords
+
 <span class="co"># Now we can install whatever we need for GHC, like LLVM</span>
 <span class="kw">emerge</span> -a llvm binutils zlib
 
@@ -134,10 +141,21 @@
 <span class="kw">cd</span> ghc-7.10.3
 <span class="kw">./configure</span>
 <span class="kw">make</span> install</code></pre></div>
-<p>As of this point in time I still encounter <a href="https://ghc.haskell.org/trac/ghc/ticket/11190">the same problem as on the Raspberry Pi</a> with the <code>qemu-arm</code> GHC, and I have not been able to install <code>cabal-install</code> yet. The Gentoo ebuild for <code>GHC</code> failed for me, but it might be worth attempting a compile from source.</p>
+<p>The first time I did this I still encountered <a href="https://ghc.haskell.org/trac/ghc/ticket/11190">the same problem as on the Raspberry Pi</a> with the <code>qemu-arm</code> GHC, however after installing LLVM 3.5.2 I have had no more problems. You can even install Cabal and cabal-install pretty easily. Just download the tarballs from <a href="https://www.haskell.org/cabal/download.html">here</a>, and follow the instructions in the README files. It really is that simple. Make sure to move the <code>cabal</code> executable somewhere in your path, and run <code>cabal update</code>, and then you should be set!</p>
+<p>I have since been able to compile my image processing program, and stuff it on the Raspberry Pi 2. No problems at all. QEMU is a bit slow, but it’s nice to not have to worry about compiling on the Pi, and now I can do everything from my development machine. This is quite a bit slower than the Pi 2 itself, but works very well.</p>
 <h1 id="current-status">Current Status</h1>
-<p>At this point, several weeks later, I am still unable to do Haskell development on ARM, despite the fact that others seem to have had success. I have had a conversation with <a href="https://twitter.com/dhess/status/675142967158571009">somebody on Twitter whom has found success</a> with <a href="https://www.scaleway.com/">Scaleway servers</a> and a <a href="http://beagleboard.org/black">Beaglebone Black</a>, but I am as yet unsuccessful! Surely I must be missing something!</p>
-<p>So, uh… Any suggestions? :)</p>
+<p>After much pain and suffering I have a way to do Haskell development on ARM! Others have had success come quite a bit more easiely. I have had a conversation with <a href="https://twitter.com/dhess/status/675142967158571009">somebody on Twitter whom found success</a> with <a href="https://www.scaleway.com/">Scaleway servers</a> and a <a href="http://beagleboard.org/black">Beaglebone Black</a>. The difference here seems to be that whatever image they were using on Scaleway had LLVM 3.5.2, and not the broken LLVM 3.5.0.</p>
+<p>Good luck to anybody trying to do the same! Ask questions, or boast about your success in the comments.</p>
+<h1 id="the-future">The Future</h1>
+<p>So with that done and working, here’s some stuff that could greatly improve the Haskell on ARM development experience:</p>
+<ul>
+<li>It would be really nice to have binary packages for ARM, which is something that <a href="https://nixos.org/nix/">nix</a> could provide. <a href="https://twitter.com/a_cowley/status/677212533854466048">Anthoney Cowley thinks this is a good idea too</a>.</li>
+<li>It might be possible to build a GHC cross compiler, and have it transparently execute ARM binaries with binfmt_misc and <code>qemu-arm</code> for Template Haskell.</li>
+<li>There would still be caveats.</li>
+<li>This would be much faster than emulating the compiler, though.</li>
+<li>Perhaps there is a way to get <code>qemu-arm</code> to use a different path for dynamic libraries, so you can have ARM libraries somewhere nice and separate</li>
+<li><a href="https://wiki.gentoo.org/wiki/Project:Prefix">Gentoo Prefix</a> might be a bit nicer than a chroot.</li>
+</ul>
 
 
 <div id="disqus_thread"></div>
