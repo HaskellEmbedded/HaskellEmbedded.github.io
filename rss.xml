@@ -24,9 +24,7 @@
 </div>
 
 <p>I have spent the last few weeks desperately trying to get Haskell working on a Raspberry Pi 2 with Raspbian (Jessie). I have had… <a href="https://twitter.com/Chobbez/status/672209942686752768">some</a> <a href="https://twitter.com/Chobbez/status/672178036612005889">problems</a></p>
-<ul>
-<li>Edit 2015-12-16: Thanks to the help of the wonderful Haskell community, my issues have been resolved. Make sure you have LLVM 3.5.2, or you may encounter the same problems that I did! *</li>
-</ul>
+<p><em>Edit 2015-12-16: Thanks to the help of the wonderful Haskell community, my issues have been resolved. Make sure you have LLVM 3.5.2, or you may encounter the same problems that I did!</em></p>
 <h1 id="cross-compilation">Cross-Compilation</h1>
 <p>There are a few useful guides available for setting up cross-compilation:</p>
 <ul>
@@ -111,10 +109,12 @@
 <p>So with that done and working, here’s some stuff that could greatly improve the Haskell on ARM development experience:</p>
 <ul>
 <li>It would be really nice to have binary packages for ARM, which is something that <a href="https://nixos.org/nix/">nix</a> could provide. <a href="https://twitter.com/a_cowley/status/677212533854466048">Anthoney Cowley thinks this is a good idea too</a>.</li>
-<li>It might be possible to build a GHC cross compiler, and have it transparently execute ARM binaries with binfmt_misc and <code>qemu-arm</code> for Template Haskell.</li>
+<li>It might be possible to build a GHC cross compiler, and have it transparently execute ARM binaries with binfmt_misc and <code>qemu-arm</code> for Template Haskell.
+<ul>
 <li>There would still be caveats.</li>
 <li>This would be much faster than emulating the compiler, though.</li>
 <li>Perhaps there is a way to get <code>qemu-arm</code> to use a different path for dynamic libraries, so you can have ARM libraries somewhere nice and separate</li>
+</ul></li>
 <li><a href="https://wiki.gentoo.org/wiki/Project:Prefix">Gentoo Prefix</a> might be a bit nicer than a chroot.</li>
 </ul>
 ]]></description>
