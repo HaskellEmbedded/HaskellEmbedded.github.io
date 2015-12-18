@@ -25,6 +25,7 @@
 
 <p>I have spent the last few weeks desperately trying to get Haskell working on a Raspberry Pi 2 with Raspbian (Jessie). I have had… <a href="https://twitter.com/Chobbez/status/672209942686752768">some</a> <a href="https://twitter.com/Chobbez/status/672178036612005889">problems</a></p>
 <p><em>Edit 2015-12-16: Thanks to the help of the wonderful Haskell community, my issues have been resolved. Make sure you have LLVM 3.5.2, or you may encounter the same problems that I did!</em></p>
+<p><em>Edit 2015-12-17: Thanks to slyfox on #ghc on freenode we now have a sort of working frankenstein’s cross-compiler!</em></p>
 <h1 id="cross-compilation">Cross-Compilation</h1>
 <p>There are a few useful guides available for setting up cross-compilation:</p>
 <ul>
@@ -33,6 +34,22 @@
 </ul>
 <p>It’s fairly easy to get a cross-compiler up and running, as long as you carefully follow instructions. This is all well and good, but there are still issues with Template Haskell. Template Haskell essentially requires that you can run code built from the compiler on the system running the compiler. Roughly speaking Template Haskell uses Haskell code to generate more Haskell during compilation. Since you can’t run an ARM executable on x86 / x86_64, you can’t compile anything that uses Template Haskell with the cross-compiler as of yet. More on this later, but <a href="https://ghc.haskell.org/trac/ghc/wiki/TemplateHaskell/CrossCompilation">here’s some more information</a>.</p>
 <p>In addition to the lack of Template Haskell, there are <a href="https://ghc.haskell.org/trac/ghc/ticket/9689">problems with certain FFI libraries, like zlib</a>. So, while my 7.10.2 can produce an acceptable ARM “Hello, World!”, I can’t compile my more complicated project. Thus I am forced to look for another option!</p>
+<h2 id="cross-compilation-with-qemu">Cross-Compilation with QEMU</h2>
+<p>So, let’s say you have <a href="#qemu-user-emulation">read the section on using a QEMU ARM user chroot with binfmt_misc to run ARM code on your non-ARM machine</a>. If we can 1) have ARM libraries on our machine, and 2) run ARM executables, then it seems like we should be able to run the <a href="#cross-compilation">cross compiler from above</a>, and then when we execute ARM code, drop into <code>qemu-arm</code>.</p>
+<p>The only thing we should have to do is tell <code>qemu-arm</code> to load dynamic libraries from somewhere else, so that we can load ARM libraries, and not x86 / x86_64 libraries. Turns out <a href="http://wiki.qemu.org/download/qemu-doc.html#Command-line-options">there is an option for this</a>:</p>
+<pre><code>$ qemu-arm
+
+...
+-L path       QEMU_LD_PREFIX    set the elf interpreter prefix to &#39;path&#39;
+...
+</code></pre>
+<p>Yeah, that will work. Using the cross compiler above, and the ARM Gentoo environment set up below I was able to compile my program just fine using:</p>
+<pre><code>cabal sandbox init
+cabal --with-ghc=arm-unknown-linux-gnueabihf-ghc --with-ghc-pkg=arm-unknown-linux-gnueabihf-ghc-pkg --with-ld=arm-linux-gnueabihf-ld --with-strip=arm-linux-gnueabihf-strip install</code></pre>
+<p>Which is <em>AWESOME</em> because the native compiler is <em>so</em> much faster than the one emulated with QEMU. This is not without caveats, though. For instance when compiling with multiple jobs it took forever and then ran out of memory, setting <code>-j1</code> fixed this.</p>
+<p>A bigger problem is that there appears to be issues with the C FFI. I’m not yet sure how this works, but when I try to run an ARM binary which uses JuicyPixels to write a PNG (which relies upon zlib), I get this error:</p>
+<pre><code>user error (Codec.Compression.Zlib: incompatible zlib version)</code></pre>
+<p>but otherwise this works surprisingly well.</p>
 <h1 id="running-on-the-raspberry-pi">Running on the Raspberry Pi</h1>
 <p>Raspbian has an old version of GHC in its repos, GHC 7.6.3, which works with simple pieces of code. For instance “Hello, World!” might compile and run perfectly well. However, my small image processing program encountered nasty, randomly changing, run time errors, and segmentation faults. Sometimes, if the stars aligned, the program would run to completion producing correct results, other times it seemed to loop forever. This is not good. One such error that I received was:</p>
 <pre><code>allocGroup: free list corrupted</code></pre>
