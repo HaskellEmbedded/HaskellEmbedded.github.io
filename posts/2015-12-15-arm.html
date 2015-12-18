@@ -83,7 +83,9 @@
 ...
 </code></pre>
 <p>Yeah, that will work. Using the cross compiler above, and the ARM Gentoo environment set up below I was able to compile my program just fine using:</p>
-<pre><code>cabal sandbox init
+<pre><code>export QEMU_LD_PREFIX=$home/arm-chroot
+
+cabal sandbox init
 cabal --with-ghc=arm-unknown-linux-gnueabihf-ghc --with-ghc-pkg=arm-unknown-linux-gnueabihf-ghc-pkg --with-ld=arm-linux-gnueabihf-ld --with-strip=arm-linux-gnueabihf-strip install</code></pre>
 <p>Which is <em>AWESOME</em> because the native compiler is <em>so</em> much faster than the one emulated with QEMU. This is not without caveats, though. For instance when compiling with multiple jobs it took forever and then ran out of memory, setting <code>-j1</code> fixed this.</p>
 <p>A bigger problem is that there appears to be issues with the C FFI. I’m not yet sure how this works, but when I try to run an ARM binary which uses JuicyPixels to write a PNG (which relies upon zlib), I get this error:</p>
