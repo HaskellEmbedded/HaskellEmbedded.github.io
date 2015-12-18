@@ -44,7 +44,7 @@
 ...
 </code></pre>
 <p>Yeah, that will work. Using the cross compiler above, and the ARM Gentoo environment set up below I was able to compile my program just fine using:</p>
-<pre><code>export QEMU_LD_PREFIX=$home/arm-chroot
+<pre><code>export QEMU_LD_PREFIX=$HOME/arm-chroot
 
 cabal sandbox init
 cabal --with-ghc=arm-unknown-linux-gnueabihf-ghc --with-ghc-pkg=arm-unknown-linux-gnueabihf-ghc-pkg --with-ld=arm-linux-gnueabihf-ld --with-strip=arm-linux-gnueabihf-strip install</code></pre>
@@ -52,6 +52,23 @@ cabal --with-ghc=arm-unknown-linux-gnueabihf-ghc --with-ghc-pkg=arm-unknown-linu
 <p>A bigger problem is that there appears to be issues with the C FFI. I’m not yet sure how this works, but when I try to run an ARM binary which uses JuicyPixels to write a PNG (which relies upon zlib), I get this error:</p>
 <pre><code>user error (Codec.Compression.Zlib: incompatible zlib version)</code></pre>
 <p>but otherwise this works surprisingly well.</p>
+<p>After a bit of digging I have found that this error comes from <a href="https://github.com/haskell/zlib/blob/85f2d95396ff884ff22af62e5e0d6029c789db63/Codec/Compression/Zlib/Stream.hsc#L549">here</a>, and since we have got an actual failure, it’s probably from calling the <code>failIfError</code> function. That means our issue is from <a href="https://github.com/haskell/zlib/blob/85f2d95396ff884ff22af62e5e0d6029c789db63/Codec/Compression/Zlib/Stream.hsc#L953">here</a>.</p>
+<p>I have checked the zlib version on all of my environments, and the version is 1.2.8 everywhere. So the <em>version</em> isn’t the issue. In fact if we look at the <a href="https://github.com/madler/zlib/blob/e8fee0ea7bf62e595bd5518b7b22e3e16397278c/deflate.c#L233">code</a> for <code>c_deflateInit2_</code> we’ll notice that it’s only checking the first version number anyway:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">if</span> (version == Z_NULL || version[<span class="dv">0</span>] != my_version[<span class="dv">0</span>] ||
+    stream_size != <span class="kw">sizeof</span>(z_stream)) {
+    <span class="kw">return</span> Z_VERSION_ERROR;
+}</code></pre></div>
+<p>But there’s our problem. The size of our <code>z_stream</code> must differ somehow. If we check the <a href="https://github.com/haskell/zlib/blob/85f2d95396ff884ff22af62e5e0d6029c789db63/Codec/Compression/Zlib/Stream.hsc#L1039">Haskell Zlib library</a> we notice the following:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="ot">c_deflateInit2 ::</span> <span class="dt">StreamState</span>
+               <span class="ot">-&gt;</span> <span class="dt">CInt</span> <span class="ot">-&gt;</span> <span class="dt">CInt</span> <span class="ot">-&gt;</span> <span class="dt">CInt</span> <span class="ot">-&gt;</span> <span class="dt">CInt</span> <span class="ot">-&gt;</span> <span class="dt">CInt</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">CInt</span>
+c_deflateInit2 z a b c d e <span class="fu">=</span>
+  withCAString <span class="fu">#</span>{const_str <span class="dt">ZLIB_VERSION</span>} <span class="fu">$</span> \versionStr <span class="ot">-&gt;</span>
+    c_deflateInit2_ z a b c d e versionStr (<span class="fu">#</span>{const sizeof(z_stream)}<span class="ot"> ::</span> <span class="dt">CInt</span>)</code></pre></div>
+<p>I’m on an x86_64 machine, so it’s pretty much guaranteed that the <code>z_stream</code> structure on my machine differs in size to the one on the 32 bit ARM machines. This should be processed by <code>hsc2hs</code>, so that’s where the issue is. I need to be running an <code>hsc2hs</code> that targets ARM, not my native one. I had an <code>arm-unknown-linux-gnueabihf-hsc2hs</code>, but it seemed to loop forever, as did the <code>hsc2hs</code> from my chroot (but not when running it in my chroot). So that’s no good either.</p>
+<p>I can pass <code>hsc2hs</code> options with cabal, however, which means I can tell the native one to compile using a <code>gcc</code> cross compiler, and you know what… It takes a linker too, so let’s throw that in for good measure too!</p>
+<pre><code>--hsc2hs-option=&quot;-c arm-linux-gnueabihf-gcc -l arm-linux-gnueabihf-ld&quot;</code></pre>
+<p>Unfortunately that still doesn’t work! We’re on the right track, but not quite there yet.</p>
 <h1 id="running-on-the-raspberry-pi">Running on the Raspberry Pi</h1>
 <p>Raspbian has an old version of GHC in its repos, GHC 7.6.3, which works with simple pieces of code. For instance “Hello, World!” might compile and run perfectly well. However, my small image processing program encountered nasty, randomly changing, run time errors, and segmentation faults. Sometimes, if the stars aligned, the program would run to completion producing correct results, other times it seemed to loop forever. This is not good. One such error that I received was:</p>
 <pre><code>allocGroup: free list corrupted</code></pre>
