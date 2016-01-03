@@ -1,18 +1,34 @@
-{ pkgs ? (import <nixpkgs> {})
-, haskellPackages ? pkgs.haskellPackages
-}:
+/*
+So far, this is the direct output of cabal2nix on the project.
+Building this should just be a matter of running inside nix-shell:
+cabal configure
+cabal build
+cabal run build
+*/
 
-haskellPackages.cabal.mkDerivation (self: {
-  pname = "HaskellEmbedded";
-  version = "0.1.0.0";
-  src = ./.;
-  isLibrary = false;
-  isExecutable = true;
-  buildDepends = with haskellPackages; [ hakyll ];
-  buildTools = with haskellPackages; [ cabalInstall ];
-  meta = {
-    description = "HaskellEmbedded web page stuff.";
-    license = self.stdenv.lib.licenses.mit;
-    platforms = self.ghc.meta.platforms;
-  };
-})
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "default" }:
+
+let
+
+  inherit (nixpkgs) pkgs;
+
+  f = { mkDerivation, base, filepath, hakyll, stdenv }:
+      mkDerivation {
+        pname = "haskellembedded";
+        version = "0.1.0.0";
+        src = ./.;
+        isLibrary = false;
+        isExecutable = true;
+        executableHaskellDepends = [ base filepath hakyll ];
+        license = stdenv.lib.licenses.mit;
+      };
+
+  haskellPackages = if compiler == "default"
+                       then pkgs.haskellPackages
+                       else pkgs.haskell.packages.${compiler};
+
+  drv = haskellPackages.callPackage f {};
+
+in
+
+  if pkgs.lib.inNixShell then drv.env else drv
