@@ -4,6 +4,48 @@ date: 2015-05-09
 author: Chris Hodapp
 ---
 
+Ion to-do
+====
+Ion post to-do list
+- I'd like Ion to be on Hackage. Does Ion require latest Ivory, or
+does the Hackage version work fine?  If Hackage version is fine, then
+I need not touch Ivory.  If newer is needed, then perhaps I should get
+Ivory into NixOS.
+- How do I get a nix specification into 'official' channels?
+- It might be good to get both Ion and Ivory into NixOS.
+
+Ivory thoughts
+====
+
+What would I aim to change in Ivory?
+- Separate procedure's interface and implementation.
+- Make a cleaner way to get at multiple representations of the same
+thing.  For instance: 16-bit integer == 2 x uint8\_t == uint8\_t*
+- Clean up some of the type trickery any way possible!  It wants to be
+replaced with dependent types.
+- Compatibility outside of GHC?
+- Remove all the half-assed, ill-explained kludges.
+
+I don't foresee maintenance happening on it, or further development,
+unless I do it myself or push hard for it.
+
+My realistic options:
+- Re-implement more cleanly in Haskell.
+- Re-implement more cleanly in something with dependent types, like
+Idris.
+- Fork it and fix it in ways that may not be palatable to the
+maintainers - and maintain it myself (or with HaskellEmbedded).
+
+My complaint is all the unfinished code there that no one who
+understands has made a priority to finish or support, including the
+original authors.
+
+My aim is that the package itself, or something implementing similar
+functionality, be organized and compatible enough that it may survive
+in the future in a useful form.
+
+Ideas
+====
 Some ideas:
 
 - What my experiences were prior to this
