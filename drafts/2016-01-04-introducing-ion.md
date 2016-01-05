@@ -24,7 +24,7 @@ libraries really weren't made for interfacing with each other.  Atom
 predates Ivory, but they both model certain features of the C
 language, and as a result have many near-identical-but-incompatible
 constructs.  For some boring details on this, see the
-[section on this hackery](#hackery) 
+[section on this hackery](#hackery).
 
 Sometime after this, I decided to re-implement Atom's functionality
 in a more Ivory-friendly way.  I looked around in the Atom source code
@@ -41,7 +41,19 @@ meaning loosely that while Atom is more standalone, Ion exists bonded
 to another library, Ivory.
 
 For the most part, I liked the way that Atom worked, and I wanted Ion
-to behave very similarly.  Particularly, I liked the Atom monad
+to behave very similarly.  Particularly, I liked the way that I could
+modularize a specification with the Atom monad, the way that specs
+could 'inherit' schedule parameters, the single run-time report giving
+the entire schedule of the system, and the checks that Atom's compiler
+did to ensure that specifications were sensible.
+
+Ion started here, but diverged somewhat later on.  I didn't manage to
+match all the features that are in Atom (and I note some of this in
+Ion's documentation), and I started down some other paths.
+
+Async & CPS
+====
+
 
 Appendix: Atom & Ivory hackery {#hackery}
 ====
@@ -70,7 +82,8 @@ code might have had some subtle errors.  In either case, Haskell saw
 no problems in type-checking, because I was only coincidentally
 coupling the two variables via the generated C code.  This could be
 particularly nasty when I was trying to match pointer types properly,
-and fudging the variable's name as `&foo`.
+and cheating a little by writing the variable's name as `&foo` or
+`*foo`.
 
 As an aside, if I remember right, a fair number of the bugs discovered
 in the code were a direct result of me bypassing the type system in
