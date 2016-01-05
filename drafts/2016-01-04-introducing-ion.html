@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Haskell Embedded Blog - Introducing Ion</title>
+        <link href="../css/bootstrap.css" rel="stylesheet" />
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <!-- syntax.css is Pandoc's syntax.css file, copied from:
+             https://github.com/jaspervdj/hakyll/blob/master/web/css/syntax.css
+          -->
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+
+        <link rel="apple-touch-icon" sizes="57x57" href="../apple-touch-icon-57x57.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="../apple-touch-icon-60x60.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="../apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="76x76" href="../apple-touch-icon-76x76.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="../apple-touch-icon-114x114.png">
+        <link rel="apple-touch-icon" sizes="120x120" href="../apple-touch-icon-120x120.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="../apple-touch-icon-144x144.png">
+        <link rel="apple-touch-icon" sizes="152x152" href="../apple-touch-icon-152x152.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon-180x180.png">
+        <link rel="icon" type="image/png" href="../favicon-32x32.png" sizes="32x32">
+        <link rel="icon" type="image/png" href="../android-chrome-192x192.png" sizes="192x192">
+        <link rel="icon" type="image/png" href="../favicon-96x96.png" sizes="96x96">
+        <link rel="icon" type="image/png" href="../favicon-16x16.png" sizes="16x16">
+        <link rel="manifest" href="../manifest.json">
+        <meta name="msapplication-TileColor" content="#da532c">
+        <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+        <meta name="theme-color" content="#ffffff">
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Haskell Embedded Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../pages/about.html">About</a>
+                <!-- a href="/contact.html">Contact</a -->
+                <a href="../pages/links.html">Links</a>
+                <a href="../archive.html">Archive</a>
+		<a href="../rss.xml">RSS</a>
+		<a href="../atom.xml">ATOM</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Introducing Ion</h1>
+
+            <div class="info">
+    Posted on January  4, 2016
+    
+        by Chris Hodapp
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="../tags/haskell.html">haskell</a>
+    
+</div>
+
+<p>To-do:</p>
+<ul>
+<li>Get Ion onto Hackage.</li>
+<li>Get a Nix build into Ion and maybe Ivory.</li>
+<li>Write a post on Ivory?</li>
+<li>Move the big paragraph in the first section to an appendix or something?</li>
+</ul>
+<h1 id="background">Background: Atom &amp; Ivory</h1>
+<p>Earlier this year, I wrote a <a href="./2015-02-17-atom-examples.html">few</a> <a href="./2015-02-20-atom-part-2-probes.lhs">posts</a> on <a href="https://hackage.haskell.org/package/atom">Atom</a>. Remember Atom? If not, those posts might give some useful background.</p>
+<p>At <a href="./2015-02-06-how-i-got-here.md">some work</a> at my (former) job, I was already using Atom in conjunction with <a href="https://github.com/GaloisInc/ivory">Ivory</a>, but those two libraries really aren’t made for interfacing with each other. Atom predates Ivory, but they both model certain features of the C language, and as a result have many near-identical-but-incompatible constructs.</p>
+<p>As a result, I was resorting to hacks like giving Atom and Ivory variables the same C name and relying on some incidental details of how to refer to functions. This works, but it is ugly and error-prone, and it also bypasses proper typing. If I mismatch the names, the C code will probably fail to build. If I mismatch the types (for instance, my Atom variable is a <code>uint32_t</code> by way of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V">V Word32</a> and my Ivory variable is a <code>int16_t</code> by way of <a href="https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16">Sint16</a>), the generated C code may contain some subtle errors. In either case, Haskell sees no problems in type-checking, because I’m only coincidentally coupling the two variables via the generated C code.</p>
+<p>Sometime after this, I decided to re-implement Atom’s functionality in a more Ivory-friendly way. I looked around in the Atom source code first with the aim of adding an Ivory backend to it, however, I quickly gave up on this. The internals were a bit too dense for me to follow, so I quickly gave up on this.</p>
+<h1 id="ion">Ion</h1>
+<p>Here, then, is where I started writing the <a href="https://github.com/HaskellEmbedded/ion">Ion</a> library from scratch. The name ‘Ion’ is a pun that’s a reference to ‘Atom’ and meaning loosely that while Atom is more standalone, Ion exists bonded to another library, Ivory.</p>
+<p>For the most part, I liked the way that Atom worked, and I wanted Ion to behave very similarly.</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+        <script src="../js/bootstrap.js"></script>
+    </body>
+</html>
