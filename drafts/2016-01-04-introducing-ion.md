@@ -54,6 +54,49 @@ Ion's documentation), and I started down some other paths.
 Async & CPS
 ====
 
+In the application that was using Ion, I started integrating in some
+support for network communication.  This involved many operations of
+transmitting a command over a UART, waiting for a reply sometime in
+the future which contained the result of that command.  Or, maybe it
+didn't - maybe it just contained some minor error, and the command
+should be retried.  Or, maybe it was a fatal error, and the only thing
+left to do was try to close down the connections, power off the modem,
+and power off the UART.  Or, maybe the reply was just total garbage
+from the UART.  Or, maybe something left the modem in a weird state,
+and it sends no reply at all.
+
+The world of rigid, deterministic timing didn't really have a place
+for this sort of uncertainly-timed, non-deterministic, divergent
+behavior doesn't fit too well.  (Actually, I had tried my best to make
+some similar (and simpler) procedures work in Atom.  I made
+specifications which ran with the same rigid timing regardless of when
+operations actually finished, and to make this reliable, I set that
+timing to be very slow, and had parts of the specification disabled if
+earlier steps failed.  It worked, but everything ran slower than
+needed.)
+
+This also is a bit tricky to handle in C in any context without
+threads or coroutines.  It almost always will involve callbacks,
+interrupts, or events - some scope starts an asynchronous operation
+(e.g. triggering an ADC measurement), and the result comes in the form
+of an interrupt handler or callback later being called.  That
+callback/interrupt handler/event handler will have to run in a
+separate scope - which means that any state that needs to make it
+'across' to that handler cannot reside on the stack.  It must be
+stored in some other form, and recovered at the handler. (I found out
+at some point that this has been [described already][usenix2002], it
+is called *stack ripping*, and it comes with event-driven
+programming.)
+
+That's annoying as-is, but in my case, I didn't even have a heap from
+which to dynamically allocate, so the only remaining option was
+static memory.
+
+As a side note, Ivory does provide coroutines, but I ran into two
+issues with them: They put every variable (whether 'live' across a
+yield or not) into static memory, and they are not composable.  More
+on that later.
+
 
 Appendix: Atom & Ivory hackery {#hackery}
 ====
@@ -94,3 +137,4 @@ this manner.
 [atom_val]: http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V
 [Sint16]: https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16
 [Ion]: https://github.com/HaskellEmbedded/ion
+[usenix2002]: https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html
