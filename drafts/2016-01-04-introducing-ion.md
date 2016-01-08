@@ -67,13 +67,14 @@ and it sends no reply at all.
 
 The world of rigid, deterministic timing didn't really have a place
 for this sort of uncertainly-timed, non-deterministic, divergent
-behavior doesn't fit too well.  (Actually, I had tried my best to make
-some similar (and simpler) procedures work in Atom.  I made
-specifications which ran with the same rigid timing regardless of when
-operations actually finished, and to make this reliable, I set that
-timing to be very slow, and had parts of the specification disabled if
-earlier steps failed.  It worked, but everything ran slower than
-needed.)
+behavior.  (Actually, I had tried my best to make some similar (and
+simpler) procedures work in Atom.  I made specifications which ran
+with the same rigid timing regardless of when operations actually
+finished, and to make this reliable, I set that timing to be very
+slow, and had parts of the specification disabled if earlier steps
+failed.  It worked, but everything ran slower than needed, and
+handling anything more divergent than 'if this failed, don't run
+that' might be very messy.)
 
 This also is a bit tricky to handle in C in any context without
 threads or coroutines.  It almost always will involve callbacks,
@@ -96,7 +97,6 @@ As a side note, Ivory does provide coroutines, but I ran into two
 issues with them: They put every variable (whether 'live' across a
 yield or not) into static memory, and they are not composable.  More
 on that later.
-
 
 Appendix: Atom & Ivory hackery {#hackery}
 ====
