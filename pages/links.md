@@ -43,6 +43,7 @@ Posts reference these links in context, but they are still useful in a central s
 - [Idris][] ([hackage][idris-hackage]) is a language from Edwin Brady, "a general purpose language with full dependent types." It is a recent language, but still has many good papers, talks, and references.
     - The paper from Brady & Hammond, [Resource-safe Systems Programming with Embedded Domain Specific Languages][idris-paper], explains a particular application of Idris that looks very practical.
 - [Cryptol][] is yet another Galois creation, a DSL for specifying cryptographic algorithms.
+- [HaSKI][] is "an FPGA-based SKI calculus evaluator written in Haskell/[Cλash][CλaSH]".  Thank you to `arjanb` for pointing this one out.
 
 [CλaSH]: http://www.clash-lang.org
 [clash-github]: https://github.com/clash-lang
@@ -86,3 +87,4 @@ Posts reference these links in context, but they are still useful in a central s
 [fpcomplete-inline-c]: https://www.fpcomplete.com/blog/2015/05/inline-c
 [ccc]: http://conal.net/blog/posts/haskell-to-hardware-via-cccs
 [lambda-ccc]: https://github.com/conal/lambda-ccc/
+[HaSKI]: http://yager.io/HaSKI/HaSKI.html
