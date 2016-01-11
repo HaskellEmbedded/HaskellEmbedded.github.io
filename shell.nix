@@ -1,10 +1,8 @@
 /*
-So far, this is the direct output of cabal2nix on the project.
-Building this should just be a matter of running inside nix-shell:
+Run something like the following in nix-shell to build the site:
 cabal configure
 cabal build
 cabal run build
-
 */
 
 { nixpkgs ? import <nixpkgs> {}, compiler ? "default" }:
@@ -20,9 +18,10 @@ let
         src = ./.;
         isLibrary = false;
         isExecutable = true;
-        executableHaskellDepends = [ base filepath hakyll ]
-          ++ stdenv.lib.optional stdenv.isDarwin
-             pkgs.darwin.apple_sdk.frameworks.Cocoa;
+        executableHaskellDepends = [ base filepath hakyll ];
+        executableSystemDepends =
+          stdenv.lib.optional stdenv.isDarwin
+          pkgs.darwin.apple_sdk.frameworks.Cocoa;
         license = stdenv.lib.licenses.mit;
       };
 
