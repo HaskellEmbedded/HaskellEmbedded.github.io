@@ -4,6 +4,7 @@ Building this should just be a matter of running inside nix-shell:
 cabal configure
 cabal build
 cabal run build
+
 */
 
 { nixpkgs ? import <nixpkgs> {}, compiler ? "default" }:
@@ -19,7 +20,9 @@ let
         src = ./.;
         isLibrary = false;
         isExecutable = true;
-        executableHaskellDepends = [ base filepath hakyll ];
+        executableHaskellDepends = [ base filepath hakyll ]
+          ++ stdenv.lib.optional stdenv.isDarwin
+             pkgs.darwin.apple_sdk.frameworks.Cocoa;
         license = stdenv.lib.licenses.mit;
       };
 
