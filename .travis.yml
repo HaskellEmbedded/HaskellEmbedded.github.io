@@ -6,10 +6,12 @@ branches:
 
 sudo: false
 
+# Cache work from Stack for future builds:
 cache:
   directories:
   - $HOME/.stack
 
+# This uses instructions from http://docs.haskellstack.org/en/stable/travis_ci/
 before_install:
 # Download and unpack the stack executable
 - mkdir -p ~/.local/bin
@@ -17,8 +19,8 @@ before_install:
 - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
-- stack +RTS -N2 -RTS setup
-- stack +RTS -N2 -RTS build --only-snapshot
+- stack setup
+- stack build --only-snapshot
 
 before_script:
 - git config --global user.email "$GIT_EMAIL"
@@ -27,7 +29,8 @@ before_script:
 script:
 - git --version
 - stack --version
-- stack +RTS -N2 -RTS build --test --haddock --no-haddock-deps
+- stack build
+# Finally, clean & generate the site:
 - stack exec site clean
 - stack exec site build
 
