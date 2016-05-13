@@ -14,7 +14,7 @@ To-do:
 Background: Atom & Ivory {#background}
 ====
 
-Earlier this year, I wrote a [few](./2015-02-17-atom-examples.html)
+Last year, I wrote a [few](./2015-02-17-atom-examples.html)
 [posts](./2015-02-20-atom-part-2-probes.lhs) on [Atom][].  Remember
 Atom?  If not, those posts might give some useful background.
 
@@ -38,7 +38,8 @@ Ion
 Here, then, is where I started writing the [Ion][] library from
 scratch.  The name 'Ion' is a pun that's a reference to 'Atom' and
 meaning loosely that while Atom is more standalone, Ion exists bonded
-to another library, Ivory.
+to another library, Ivory.  (I should probably move away from chemistry
+puns and leave that up to things like [Rust][] and [Redox][].)
 
 For the most part, I liked the way that Atom worked, and I wanted Ion
 to behave very similarly.  Particularly, I liked the way that I could
@@ -63,18 +64,18 @@ should be retried.  Or, maybe it was a fatal error, and the only thing
 left to do was try to close down the connections, power off the modem,
 and power off the UART.  Or, maybe the reply was just total garbage
 from the UART.  Or, maybe something left the modem in a weird state,
-and it sends no reply at all.
+and it sent no reply at all.
 
 The world of rigid, deterministic timing didn't really have a place
 for this sort of uncertainly-timed, non-deterministic, divergent
-behavior.  (Actually, I had tried my best to make some similar (and
-simpler) procedures work in Atom.  I made specifications which ran
-with the same rigid timing regardless of when operations actually
-finished, and to make this reliable, I set that timing to be very
-slow, and had parts of the specification disabled if earlier steps
-failed.  It worked, but everything ran slower than needed, and
-handling anything more divergent than 'if this failed, don't run
-that' might be very messy.)
+behavior.  (Actually, I had tried my best to make some similar and
+simpler procedures work in Atom.  I made specifications which ran with
+the same rigid timing regardless of when operations actually finished,
+and to make this reliable, I set that timing to be very slow, and had
+parts of the specification disabled if earlier steps failed.  It
+worked, but operations took up far more time than needed, and handling
+anything more divergent than 'if this failed, don't run that' might be
+very messy.)
 
 This also is a bit tricky to handle in C in any context without
 threads or coroutines.  It almost always will involve callbacks,
@@ -93,10 +94,10 @@ That's annoying as-is, but in my case, I didn't even have a heap from
 which to dynamically allocate, so the only remaining option was
 static memory.
 
-As a side note, Ivory does provide coroutines, but I ran into two
-issues with them: They put every variable (whether 'live' across a
-yield or not) into static memory, and they are not composable.  More
-on that later.
+As a side note, Ivory does provide a nice [coroutines][]
+implementation, but I ran into two issues with them: They put every
+variable (whether 'live' across a suspend/yield or not) into static
+memory, and they are not composable.  More on that later.
 
 Appendix: Atom & Ivory hackery {#hackery}
 ====
@@ -138,3 +139,6 @@ this manner.
 [Sint16]: https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16
 [Ion]: https://github.com/HaskellEmbedded/ion
 [usenix2002]: https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html
+[Rust]: https://www.rust-lang.org/
+[Redox]: http://www.redox-os.org/
+[coroutines]: https://github.com/GaloisInc/ivory/blob/master/ivory/src/Ivory/Language/Coroutine.hs
