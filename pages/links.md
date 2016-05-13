@@ -23,6 +23,7 @@ Posts reference these links in context, but they are still useful in a central s
 - From Christiaan Baaij is [CλaSH: CAES Language for Synchronous Hardware][CλaSH] ([GitHub][clash-github], [hackage][clash-hackage] and its associated [tutorial][clash-tutorial]. CλaSH is a "functional hardware description language that borrows both its syntax and semantics from the functional programming language Haskell."
     - Note in the "CλaSH vs Lava" section in the tutorial that CλaSH is not an EDSL like the Lava family, but rather, it uses a static analysis approach.
     - arjanb pointed us to [CλaSH FPGA Starter](https://christiaanb.github.io/posts/clash-fpga-starter/), a quick tutorial for the [Terasic DE0-Nano](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&CategoryNo=139&No=593).
+    - [QBayLogic][], a company which Christiaan co-founded, provides consulting for CλaSH.
 - [The Reduceron][reduceron-original] is some very interesting work with an FPGA softcore for running lazy functional programs.
     - It was forked/revived as a [newer project][practical-reduceron] ([GitHub][reduceron-github]).
 - Conal Elliott worked with a Silicon Valley startup, *Tabula*, on
@@ -49,6 +50,7 @@ Posts reference these links in context, but they are still useful in a central s
 [clash-github]: https://github.com/clash-lang
 [clash-hackage]: https://hackage.haskell.org/package/clash-ghc
 [clash-tutorial]: http://hackage.haskell.org/package/clash-prelude/docs/CLaSH-Tutorial.html
+[qbaylogic]: http://qbaylogic.webflow.io
 [functionalroboticist]: http://acowley.github.io/NYHUG/FunctionalRoboticist.pdf "Cowley, A. (2014). Abstractions for the Functional Roboticist."
 [functionalroboticist-video]: https://vimeo.com/77164337
 [atom-github]: https://github.com/tomahawkins/atom
