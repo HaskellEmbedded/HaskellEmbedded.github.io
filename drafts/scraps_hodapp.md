@@ -47,6 +47,9 @@ in the future in a useful form.
 Unsolved Ivory gripes
 ====
 
+I keep running into things that are a bit crucial for most "real"
+systems programming when interfacing with existing APIs.
+
 - Looking at <https://github.com/GaloisInc/ivory/issues/6> and
 <https://github.com/GaloisInc/ivory/issues/62>, it is still impossible
 to make an opaque type of arbitrary name - in the C sense of a type
@@ -61,6 +64,10 @@ function's signature.  It can only refer to an externally-defined
 variable and only for the sake of passing it to an externally-defined
 function.
 - I'm still not sure how to properly render a C `enum`.
+- The split between structs and BitData is a bit jarring and annoying.
+- This feels less like an Ivory issue and more of an issue that's just
+inherent to trying to make C code more formal in its behavior, but
+some of the behavior around pointers can be tedious.
 
 Ideas
 ====
