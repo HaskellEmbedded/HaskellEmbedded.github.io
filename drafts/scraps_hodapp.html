@@ -71,11 +71,14 @@
 <p>My complaint is all the unfinished code there that no one who understands has made a priority to finish or support, including the original authors.</p>
 <p>My aim is that the package itself, or something implementing similar functionality, be organized and compatible enough that it may survive in the future in a useful form.</p>
 <h1 id="unsolved-ivory-gripes">Unsolved Ivory gripes</h1>
+<p>I keep running into things that are a bit crucial for most “real” systems programming when interfacing with existing APIs.</p>
 <ul>
 <li>Looking at <a href="https://github.com/GaloisInc/ivory/issues/6" class="uri">https://github.com/GaloisInc/ivory/issues/6</a> and <a href="https://github.com/GaloisInc/ivory/issues/62" class="uri">https://github.com/GaloisInc/ivory/issues/62</a>, it is still impossible to make an opaque type of arbitrary name - in the C sense of a type which can be instantiated and which can appear in function signatures, but which cannot (or should not) be inspected or used in any other way.</li>
 <li>An opaque type can be made if it happens to have <code>struct</code> in the name via <code>abstract struct</code> in Ivory’s quasiquoter.</li>
 <li>Ivory’s <code>OpaqueType</code> is much more restrictive. It has no associated type name, and it can neither be instantiated nor can it appear in a function’s signature. It can only refer to an externally-defined variable and only for the sake of passing it to an externally-defined function.</li>
 <li>I’m still not sure how to properly render a C <code>enum</code>.</li>
+<li>The split between structs and BitData is a bit jarring and annoying.</li>
+<li>This feels less like an Ivory issue and more of an issue that’s just inherent to trying to make C code more formal in its behavior, but some of the behavior around pointers can be tedious.</li>
 </ul>
 <h1 id="ideas">Ideas</h1>
 <p>Some ideas:</p>
