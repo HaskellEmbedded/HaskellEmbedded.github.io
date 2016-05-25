@@ -63,6 +63,11 @@ type name, and it can neither be instantiated nor can it appear in a
 function's signature.  It can only refer to an externally-defined
 variable and only for the sake of passing it to an externally-defined
 function.
+- A struct cannot have uppercase field names.  Two structs cannot have
+identically-named fields, even though C permits this.  These are
+manifestations of the same problem, which is that you cannot decouple
+the C name and the Haskell name - except possibly by bypassing the
+Template Haskell that is used to generate this.
 - I'm still not sure how to properly render a C `enum`.
 - The split between structs and BitData is a bit jarring and annoying.
 - This feels less like an Ivory issue and more of an issue that's just
