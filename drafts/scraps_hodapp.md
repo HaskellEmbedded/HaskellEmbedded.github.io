@@ -44,6 +44,24 @@ My aim is that the package itself, or something implementing similar
 functionality, be organized and compatible enough that it may survive
 in the future in a useful form.
 
+Unsolved Ivory gripes
+====
+
+- Looking at <https://github.com/GaloisInc/ivory/issues/6> and
+<https://github.com/GaloisInc/ivory/issues/62>, it is still impossible
+to make an opaque type of arbitrary name - in the C sense of a type
+which can be instantiated and which can appear in function signatures,
+but which cannot (or should not) be inspected or used in any other
+way.
+- An opaque type can be made if it happens to have `struct` in the
+name via `abstract struct` in Ivory's quasiquoter.
+- Ivory's `OpaqueType` is much more restrictive.  It has no associated
+type name, and it can neither be instantiated nor can it appear in a
+function's signature.  It can only refer to an externally-defined
+variable and only for the sake of passing it to an externally-defined
+function.
+- I'm still not sure how to properly render a C `enum`.
+
 Ideas
 ====
 Some ideas:
