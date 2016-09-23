@@ -78,10 +78,11 @@ programming.  It targets the [Ivory][] EDSL and is coupled closely
 with it.
 
 I made Ion to cover two main cases:
-* Scheduling tasks ("tasks" loosely just meaning "little bits of
+
+- Scheduling tasks ("tasks" loosely just meaning "little bits of
   restricted Ivory code") that needed to execute on very strict
   timing.
-* Handling tasks that may need to call other tasks asynchronously, and
+- Handling tasks that may need to call other tasks asynchronously, and
   ultimately work with a form of continuation-passing style.
 
 I sort of gloss over the "why?" of the first part because it's almost
@@ -601,7 +602,6 @@ the C function `timer_2`.
 CPS
 ----
 
-
 Conclusions
 ====
 
@@ -678,9 +678,10 @@ was trying to make them behave like something else.
 
 Consider coroutine A and coroutine B.  As far as control flow goes,
 coroutine A can do a few things:
-* return back to caller
-* suspend itself with *yield*
-* resume coroutine B (or call it in the first place)
+
+- return back to caller
+- suspend itself with *yield*
+- resume coroutine B (or call it in the first place)
 
 *(It can't call itself, but that's incidental here; Ivory's coroutines
 store a continuation in static memory, so only one can be "live" at
