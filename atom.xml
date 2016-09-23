@@ -8,8 +8,588 @@
         <name></name>
         <email></email>
     </author>
-    <updated>2015-12-15T00:00:00Z</updated>
+    <updated>2016-09-23T00:00:00Z</updated>
     <entry>
+    <title>Introducing Ion</title>
+    <link href="http://haskellembedded.github.io//posts/2016-09-23-introducing-ion.html" />
+    <id>http://haskellembedded.github.io//posts/2016-09-23-introducing-ion.html</id>
+    <published>2016-09-23T00:00:00Z</published>
+    <updated>2016-09-23T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<div class="info">
+    Posted on September 23, 2016
+    
+        by Chris Hodapp
+    
+</div>
+<div class="info">
+    
+    Tags: <a href="/tags/haskell.html">haskell</a>, <a href="/tags/ivory.html">ivory</a>
+    
+</div>
+
+<h1 id="really-short-version">Really Short Version</h1>
+<p><a href="https://github.com/HaskellEmbedded/ion">Ion</a> is a Haskell EDSL that I wrote for concurrent, realtime, embedded programming, targeting the <a href="https://github.com/GaloisInc/ivory">Ivory</a> EDSL. I finally released it to <a href="https://hackage.haskell.org/package/ion-1.0.0.0">hackage</a>. It’s still rather experimental.</p>
+<h1 id="background">Background: Atom &amp; Ivory</h1>
+<p>Last year, I wrote a <a href="./2015-02-17-atom-examples.html">few</a> <a href="./2015-02-20-atom-part-2-probes.lhs">posts</a> on <a href="https://hackage.haskell.org/package/atom">Atom</a>. Remember Atom? If not, those posts might give some useful background.</p>
+<p>At <a href="./2015-02-06-how-i-got-here.md">some work</a> at my former job, I was already using Atom in conjunction with <a href="https://github.com/GaloisInc/ivory">Ivory</a>, but those two libraries really weren’t made for interfacing with each other. Atom predates Ivory, but they both model certain features of the C language, and as a result have many near-identical-but-incompatible constructs. For some boring details on this, see the <a href="#hackery">section on this hackery</a>.</p>
+<p>Sometime after this, I decided to re-implement Atom’s functionality in a more Ivory-friendly way. I looked around in the Atom source code first with the aim of adding an Ivory backend to it, however, I quickly gave up on this as the internals were a bit too dense for me to follow.</p>
+<p>This post is badly-overdue, and for that I apologize. For more information, track me (hodapp) down in <a href="irc://chat.freenode.net/%23haskell-embedded">#haskell-embedded</a> or Ion’s GitHub.</p>
+<h1 id="ion">Ion</h1>
+<p>Here, then, is where I started writing the <a href="https://github.com/HaskellEmbedded/ion">Ion</a> library from scratch. The name ‘Ion’ is a pun that’s a reference to ‘Atom’ and meaning loosely that while Atom is more standalone, Ion exists bonded to another library, Ivory. (I should probably move away from chemistry puns and leave that up to things like <a href="https://www.rust-lang.org/">Rust</a> and <a href="http://www.redox-os.org/">Redox</a>.)</p>
+<p>For the most part, I liked the way that Atom worked, and I wanted Ion to behave very similarly. Particularly, I liked the way that I could modularize a specification with the Atom monad, the way that specs could ‘inherit’ schedule parameters, the single run-time report giving the entire schedule of the system, and the checks that Atom’s compiler did to ensure that specifications were sensible.</p>
+<p>Ion started here, but diverged somewhat later on. I didn’t manage to match all the features that are in Atom (and I note some of this in Ion’s documentation), and I started down some other paths.</p>
+<h2 id="what-is-ion">What is Ion?</h2>
+<p>Ion, in brief, is a Haskell EDSL for concurrent, realtime, embedded programming. It targets the <a href="https://github.com/GaloisInc/ivory">Ivory</a> EDSL and is coupled closely with it.</p>
+<p>I made Ion to cover two main cases:</p>
+<ul>
+<li>Scheduling tasks (“tasks” loosely just meaning “little bits of restricted Ivory code”) that needed to execute on very strict timing.</li>
+<li>Using continuating-passing style to compose together asychronous tasks (particularly those that call around with callbacks).</li>
+</ul>
+<p>I sort of gloss over the “why?” of the first part because it’s almost all of the same reasons of why Atom exists. I try to answer the “why?” of the second part, and to some extent the “how?”, below.</p>
+<h1 id="async-cps">Async &amp; CPS</h1>
+<p>In the application that was using Ion, I started integrating in some support for network communication via a SIM800 GSM modem. This involved many operations of transmitting a command over a UART, waiting for a reply sometime in the future which contained the result of that command - perhaps an HTTP payload or something.</p>
+<p>Or, maybe it didn’t - maybe it just contained some minor error, and the command should be retried.</p>
+<p>Or, maybe it was a fatal error, and the only thing left to do was try to close down the connections, power off the modem, and power off the UART.</p>
+<p>Or, maybe the reply was just total garbage from the UART.</p>
+<p>Or, maybe something left the modem in a weird state, and it sent no reply at all because it’s still waiting for us to do something.</p>
+<p>The world of rigid, deterministic timing didn’t really have a place for this sort of uncertainly-timed, non-deterministic, divergent behavior (someone’s probably codified this into a theorem or something). Actually, I had tried my best to make some similar and simpler procedures work in Atom. I made specifications which ran with the same rigid timing regardless of when operations actually finished, and to make this reliable, I set that timing to be very slow, and had parts of the specification disabled if earlier steps failed. It worked, but operations took up far more time than needed, and handling anything more divergent than <em>if this fails, don’t run that</em> would become very messy.</p>
+<p>This also is a bit tricky to handle in C in any context without threads or coroutines. It almost always will involve callbacks, interrupts, or events - some scope starts an asynchronous operation (e.g. triggering an ADC measurement), and the result comes in the form of an interrupt handler or callback later being called. That callback/interrupt handler/event handler will have to run in a separate scope - which means that any state that needs to make it ‘across’ to that handler cannot reside on the stack. It must be stored in some other form, and recovered at the handler. (I found out at some point that this has been <a href="https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html">described already</a>: it is called <em>stack ripping</em>, and it comes with event-driven programming.)</p>
+<p>That’s annoying as-is, but in my case, I didn’t even have a heap from which to dynamically allocate, so the only remaining option was static memory.</p>
+<p>As a side note, Ivory does provide a nice <a href="https://github.com/GaloisInc/ivory/blob/master/ivory/src/Ivory/Language/Coroutine.hs">coroutines</a> implementation, but I ran into two issues with them: They put every variable (whether ‘live’ across a suspend/yield or not) into static memory, and they were not composable. <a href="#coroutines">An appendix section</a> gives some more details on this.</p>
+<p>I wanted coroutines I could parametrize over other coroutines (higher-order coroutines?), which seemed to require something like a coroutine whose ‘resume’ continuation and ‘exit’ continuation both were reified rather than implicit. I also wanted it to be in a form that I could interface it with C APIs that wanted function pointers for callbacks or “normal” functions for interrupts.</p>
+<p>I do not have a reference on this, but from memory, one of Oleg Kiselyov’s papers defined a coroutine as something like, “two continuations calling each other.” After thinking on this a bit, I realized that coroutines weren’t really the appropriate abstraction; I needed something more general, perhaps like a continuation, because ultimately what I was dealing with was <a href="https://en.wikipedia.org/wiki/Continuation-passing_style">continuation-passing style</a>, and indeed CPS can express other patterns such as exceptions. (After reading extensively about <a href="https://hackage.haskell.org/package/mtl/docs/Control-Monad-Cont.html">Control.Monad.Cont</a> and trying to discern whether I could use <code>Cont</code>, <code>ContT</code>, <code>MonadCont</code>, or <code>callCC</code> to achieve this, I decided that I had even less of an idea than when I started. I was leaning towards “no,” but I still have no idea.)</p>
+<p>In the end, I ignored coroutines completely. I made a couple basic abstractions and some plumbing to make them practically usable, and this worked well for me. The <a href="#cps">CPS</a> section gives some further examples on this.</p>
+<h1 id="examples">Examples</h1>
+<p>The examples here are all rather contrived. All of the “real” work that I did with Ion was proprietary code that I can’t share, and even if I could, it wouldn’t build to an actual embedded target, except in the context of the much larger <a href="https://hackage.haskell.org/package/shake">Shake</a> build it was in and the entire associated toolchain.</p>
+<p>However, I’ve tried to create some representative examples to a hypothetical C API. See <a href="https://github.com/HaskellEmbedded/ion/blob/master/src/Ivory/Language/Ion/Examples/Example.hs">Example.hs</a> for these examples in a more buildable form (at least as far as the Haskell part goes).</p>
+<h2 id="scheduling">Scheduling</h2>
+<p>First, let’s tell Ivory about some (nonexistent) C calls in <code>something.h</code>, with corresponding C prototypes indicated above for those who have no idea how to grok Ivory declarations:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- void foo(int16_t)</span>
+<span class="ot">foo ::</span> <span class="dt">Def</span> (<span class="ch">&#39;[Sint16] :-&gt; ())</span>
+foo <span class="fu">=</span> importProc <span class="st">&quot;foo&quot;</span> <span class="st">&quot;something.h&quot;</span>
+
+<span class="co">-- void bar(int32_t)</span>
+<span class="ot">bar ::</span> <span class="dt">Def</span> (<span class="ch">&#39;[Sint32] :-&gt; ())</span>
+bar <span class="fu">=</span> importProc <span class="st">&quot;bar&quot;</span> <span class="st">&quot;something.h&quot;</span>
+
+<span class="co">-- uint16_t get_value(int32_t)</span>
+<span class="ot">get_value ::</span> <span class="dt">Def</span> (<span class="ch">&#39;[Uint8] :-&gt; Uint16)</span>
+get_value <span class="fu">=</span> importProc <span class="st">&quot;get_value&quot;</span> <span class="st">&quot;something.h&quot;</span>
+
+<span class="co">-- bool get_flag(void)</span>
+<span class="ot">get_flag ::</span> <span class="dt">Def</span> (<span class="ch">&#39;[] :-&gt; IBool)</span>
+get_flag <span class="fu">=</span> importProc <span class="st">&quot;get_flag&quot;</span> <span class="st">&quot;something.h&quot;</span></code></pre></div>
+<p>Here’s a top-level spec. As with Atom, <code>period</code> defines what division of a base rate all of its contents inherit - hence, <code>variousPhases</code> (which I define later) runs at 1/100th of the base rate, unless that’s overridden.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">simpleSchedule ::</span> <span class="dt">Ion</span> ()
+simpleSchedule <span class="fu">=</span> ion <span class="st">&quot;schedule&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+  
+  period <span class="dv">100</span> <span class="fu">$</span> <span class="kw">do</span>
+    variousPhases
+
+  cond ((<span class="fu">&gt;?</span> <span class="dv">10</span>) <span class="fu">&lt;$&gt;</span> call get_value) <span class="fu">$</span> <span class="kw">do</span>
+    ivoryEff <span class="fu">$</span> comment <span class="st">&quot;get_value() &gt; 10&quot;</span>
+    cond (call get_flag) <span class="fu">$</span> <span class="kw">do</span>
+      ivoryEff <span class="fu">$</span> comment <span class="st">&quot;get_value() &gt; 10 &amp;&amp; get_flag()&quot;</span></code></pre></div>
+<p>The entire <code>cond</code> block is there to illustrate that parts of a spec can be made conditional. The argument to <code>cond</code> isn’t exactly a boolean, but rather, is an Ivory effect which returns a boolean. One denotes the Ivory effects to weave into all of this with <code>ivoryEff</code>, and in this case, the code does the very boring effect of inserting a C comment with <code>comment</code>.</p>
+<p>Here is <code>variousPhases</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">variousPhases ::</span> <span class="dt">Ion</span> ()
+variousPhases <span class="fu">=</span> <span class="kw">do</span>
+    phase <span class="dv">1</span> <span class="fu">$</span> ivoryEff <span class="fu">$</span> <span class="kw">do</span>
+      comment <span class="st">&quot;period 100, phase 1&quot;</span>
+      call_ foo
+    phase <span class="dv">10</span> <span class="fu">$</span> ion <span class="st">&quot;optional_tag&quot;</span> <span class="fu">$</span> ivoryEff <span class="fu">$</span> <span class="kw">do</span>
+      comment <span class="st">&quot;period 100, phase 10&quot;</span>
+      call_ bar
+    disable <span class="fu">$</span> phase <span class="dv">20</span> <span class="fu">$</span> ivoryEff <span class="fu">$</span> <span class="kw">do</span>
+      comment <span class="st">&quot;shouldn&#39;t even appear in code&quot;</span>
+      call_ foo
+      call_ bar
+    delay <span class="dv">50</span> <span class="fu">$</span> <span class="kw">do</span>
+      p <span class="ot">&lt;-</span> getSched
+      ivoryEff <span class="fu">$</span> <span class="kw">do</span>
+        comment <span class="st">&quot;Should be phase 100 + 50&quot;</span>
+        comment (<span class="st">&quot;Reported sched: &quot;</span> <span class="fu">++</span> show p)
+      delay <span class="dv">10</span> <span class="fu">$</span> ion <span class="st">&quot;moreDelay&quot;</span> <span class="fu">$</span> <span class="kw">do</span>
+        p <span class="ot">&lt;-</span> getSched
+        ivoryEff <span class="fu">$</span> <span class="kw">do</span>
+          comment <span class="st">&quot;Should be phase 100 + 50 + 10&quot;</span>
+          comment (<span class="st">&quot;Reported sched: &quot;</span> <span class="fu">++</span> show p)
+      phase <span class="dv">1</span> <span class="fu">$</span> <span class="kw">do</span>
+        ivoryEff <span class="fu">$</span> comment <span class="st">&quot;Should override to phase 1&quot;</span>
+    period <span class="dv">1000</span> <span class="fu">$</span> <span class="kw">do</span>
+      ivoryEff <span class="fu">$</span> comment <span class="st">&quot;Should override all other period&quot;</span></code></pre></div>
+<p>This is full of <code>phase</code>, which behaves more like <code>exactPhase</code> from Atom, specifying that its contents should execute at some specific offset of the current period. I don’t yet have support for the exact semantics of Atom’s <code>phase</code>, which means something more like, “schedule it then, at the earliest”.</p>
+<p><code>delay</code> has no exact analogue in Atom, but it simply specifies that something executes at some relative phase past the phase that was inherited. That is, if you nested a series of <code>delay 1</code>, they’d all proceed one tick apart, starting at what phase they inherited.</p>
+<p>If we run all this through Ion and Ivory with <code>ionCompile ivoryOpts &quot;simpleSchedule&quot; simpleSchedule</code> then the below C code results:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// module simpleSchedule Source:</span>
+
+<span class="ot">#include &quot;simpleSchedule.h&quot;</span>
+<span class="dt">uint8_t</span> counter_schedule_0 = (<span class="dt">uint8_t</span>) 1U;
+<span class="dt">uint8_t</span> counter_optional_tag_1 = (<span class="dt">uint8_t</span>) 10U;
+<span class="dt">uint8_t</span> counter_schedule_2 = (<span class="dt">uint8_t</span>) 50U;
+<span class="dt">uint8_t</span> counter_moreDelay_3 = (<span class="dt">uint8_t</span>) 60U;
+<span class="dt">uint8_t</span> counter_schedule_4 = (<span class="dt">uint8_t</span>) 1U;
+<span class="dt">uint16_t</span> counter_schedule_5 = (<span class="dt">uint16_t</span>) 0U;
+<span class="dt">uint8_t</span> counter_schedule_6 = (<span class="dt">uint8_t</span>) 0U;
+<span class="dt">uint8_t</span> counter_schedule_7 = (<span class="dt">uint8_t</span>) 0U;
+<span class="dt">void</span> simpleSchedule(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule entry procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_schedule_0)) {
+        ion_schedule_0();
+        counter_schedule_0 = (<span class="dt">uint8_t</span>) 99U;
+    } <span class="kw">else</span> {
+        counter_schedule_0 = (<span class="dt">uint8_t</span>) (counter_schedule_0 - (<span class="dt">uint8_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule.optional_tag */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_optional_tag_1)) {
+        ion_optional_tag_1();
+        counter_optional_tag_1 = (<span class="dt">uint8_t</span>) 99U;
+    } <span class="kw">else</span> {
+        counter_optional_tag_1 = (<span class="dt">uint8_t</span>) (counter_optional_tag_1 - (<span class="dt">uint8_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_schedule_2)) {
+        ion_schedule_2();
+        counter_schedule_2 = (<span class="dt">uint8_t</span>) 99U;
+    } <span class="kw">else</span> {
+        counter_schedule_2 = (<span class="dt">uint8_t</span>) (counter_schedule_2 - (<span class="dt">uint8_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule.moreDelay */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_moreDelay_3)) {
+        ion_moreDelay_3();
+        counter_moreDelay_3 = (<span class="dt">uint8_t</span>) 99U;
+    } <span class="kw">else</span> {
+        counter_moreDelay_3 = (<span class="dt">uint8_t</span>) (counter_moreDelay_3 - (<span class="dt">uint8_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_schedule_4)) {
+        ion_schedule_4();
+        counter_schedule_4 = (<span class="dt">uint8_t</span>) 99U;
+    } <span class="kw">else</span> {
+        counter_schedule_4 = (<span class="dt">uint8_t</span>) (counter_schedule_4 - (<span class="dt">uint8_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint16_t</span>) 0U == counter_schedule_5)) {
+        ion_schedule_5();
+        counter_schedule_5 = (<span class="dt">uint16_t</span>) 999U;
+    } <span class="kw">else</span> {
+        counter_schedule_5 = (<span class="dt">uint16_t</span>) (counter_schedule_5 - (<span class="dt">uint16_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_schedule_6)) {
+        ion_schedule_6();
+        counter_schedule_6 = (<span class="dt">uint8_t</span>) 0U;
+    } <span class="kw">else</span> {
+        counter_schedule_6 = (<span class="dt">uint8_t</span>) (counter_schedule_6 - (<span class="dt">uint8_t</span>) 1U);
+    }
+    <span class="co">/* Path: schedule */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_schedule_7)) {
+        ion_schedule_7();
+        counter_schedule_7 = (<span class="dt">uint8_t</span>) 0U;
+    } <span class="kw">else</span> {
+        counter_schedule_7 = (<span class="dt">uint8_t</span>) (counter_schedule_7 - (<span class="dt">uint8_t</span>) 1U);
+    }
+}
+<span class="dt">void</span> ion_schedule_0(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="co">/* Phase: 1 */</span>
+    <span class="co">/* Period: 100 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    <span class="co">/* period 100, phase 1 */</span>
+    foo();
+}
+<span class="dt">void</span> ion_optional_tag_1(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule.optional_tag */</span>
+    <span class="co">/* Phase: 10 */</span>
+    <span class="co">/* Period: 100 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    <span class="co">/* period 100, phase 10 */</span>
+    bar();
+}
+<span class="dt">void</span> ion_schedule_2(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="co">/* Phase: 50 */</span>
+    <span class="co">/* Period: 100 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    <span class="co">/* Should be phase 100 + 50 */</span>
+    <span class="co">/* Reported sched: Schedule {schedId = 0, schedName = &quot;schedule&quot;, schedPath = [&quot;schedule&quot;], schedPhase = 50, schedPeriod = 100, schedAction = [], schedCond = []} */</span>
+    ;
+}
+<span class="dt">void</span> ion_moreDelay_3(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule.moreDelay */</span>
+    <span class="co">/* Phase: 60 */</span>
+    <span class="co">/* Period: 100 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    <span class="co">/* Should be phase 100 + 50 + 10 */</span>
+    <span class="co">/* Reported sched: Schedule {schedId = 0, schedName = &quot;moreDelay&quot;, schedPath = [&quot;schedule&quot;,&quot;moreDelay&quot;], schedPhase = 60, schedPeriod = 100, schedAction = [], schedCond = []} */</span>
+    ;
+}
+<span class="dt">void</span> ion_schedule_4(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="co">/* Phase: 1 */</span>
+    <span class="co">/* Period: 100 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    <span class="co">/* Should override to phase 1 */</span>
+    ;
+}
+<span class="dt">void</span> ion_schedule_5(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="co">/* Phase: 0 */</span>
+    <span class="co">/* Period: 1000 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    <span class="co">/* Should override all other period */</span>
+    ;
+}
+<span class="dt">void</span> ion_schedule_6(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="co">/* Phase: 0 */</span>
+    <span class="co">/* Period: 1 */</span>
+    <span class="co">/* Action has 1 conditions: */</span>
+    ;
+    
+    <span class="dt">uint16_t</span> n_r0 = get_value();
+    
+    <span class="kw">if</span> ((bool) (n_r0 &gt; (<span class="dt">uint16_t</span>) 10U)) {
+        <span class="co">/* get_value() &gt; 10 */</span>
+        ;
+    }
+}
+<span class="dt">void</span> ion_schedule_7(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: schedule */</span>
+    <span class="co">/* Phase: 0 */</span>
+    <span class="co">/* Period: 1 */</span>
+    <span class="co">/* Action has 2 conditions: */</span>
+    ;
+    
+    bool n_r0 = get_flag();
+    <span class="dt">uint16_t</span> n_r1 = get_value();
+    
+    <span class="kw">if</span> ((bool) (n_r0 &amp;&amp; (bool) (n_r1 &gt; (<span class="dt">uint16_t</span>) 10U))) {
+        <span class="co">/* get_value() &gt; 10 &amp;&amp; get_flag() */</span>
+        ;
+    }
+}</code></pre></div>
+<p>and this header:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// module simpleSchedule Header:</span>
+
+<span class="ot">#include &quot;ivory.h&quot;</span>
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_schedule_0;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_optional_tag_1;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_schedule_2;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_moreDelay_3;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_schedule_4;
+<span class="kw">extern</span> <span class="dt">uint16_t</span> counter_schedule_5;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_schedule_6;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_schedule_7;
+<span class="dt">void</span> simpleSchedule(<span class="dt">void</span>);
+<span class="dt">void</span> ion_schedule_0(<span class="dt">void</span>);
+<span class="dt">void</span> ion_optional_tag_1(<span class="dt">void</span>);
+<span class="dt">void</span> ion_schedule_2(<span class="dt">void</span>);
+<span class="dt">void</span> ion_moreDelay_3(<span class="dt">void</span>);
+<span class="dt">void</span> ion_schedule_4(<span class="dt">void</span>);
+<span class="dt">void</span> ion_schedule_5(<span class="dt">void</span>);
+<span class="dt">void</span> ion_schedule_6(<span class="dt">void</span>);
+<span class="dt">void</span> ion_schedule_7(<span class="dt">void</span>);</code></pre></div>
+<p><code>simpleSchedule</code> is the most important of this: This is the main scheduling function (“schedule entry procedure”) that must be called at the base rate through a timer, an interrupt, or something of the sort for anything to work right. Often this must be set up outside of Ivory because Ivory really isn’t interested in whatever C/ASM black magic the timer requires - go do that, hide it, and don’t let Ivory know about it. Also, the name of that function is what we supplied to <code>ionCompile</code>.</p>
+<p>It has also produced several variables, all of the <code>counter_</code> ones, which are used for establishing the correct periods and phases. Take a look in <code>simpleSchedule</code> and the pattern should be clear (as well as near-identical to how Atom does it, since I basically copied its method): Each Ivory effect in a particular period/phase context turns into a branch, a function, and a counter variable. The counter variable starts at the respective phase, and each branch is responsible for resetting it to the respective period, decrementing the counter, and calling the function that contains the Ivory effects. Note also that <code>counter_schedule_5</code> uses a <code>uint16_t</code> - it corresponds to the <code>period 1000</code> block, so a larger counter variable is needed to fit that range. Note also in <code>ion_schedule_7</code> that nesting conditions with <code>cond</code> leads to all of them applying (i.e. logical AND).</p>
+<p>Read through the code in some more detail, and it should be clear how specifications map and flatten out to generated C code. The names given in <code>ion</code> are for the most part just for documentation purposes; Ion is perfectly content to generate unique C identifiers without help. Note that each point has a sort of “path” that led to it, and that path determines how it is scheduled.</p>
+<h2 id="timers">Timers</h2>
+<p>Here’s a shorter example that incorporates Ion’s resettable timers (note the use of <code>mdo</code> so we may define the timer first; this will need <code>{-# LANGUAGE RecursiveDo #-}</code>):</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">exampleTimer ::</span> <span class="dt">Ion</span> (<span class="dt">Def</span> (<span class="ch">&#39;[] &#39;</span><span class="fu">:-&gt;</span> ()))
+exampleTimer <span class="fu">=</span> ion <span class="st">&quot;timer&quot;</span> <span class="fu">$</span> mdo
+
+  <span class="co">-- Timer is initialized with a Uint16; procedure called at</span>
+  <span class="co">-- expiration is fixed at compile-time:</span>
+  timer1 <span class="ot">&lt;-</span> period <span class="dv">1</span> <span class="fu">$</span> timer (<span class="dt">Proxy</span><span class="ot"> ::</span> <span class="dt">Proxy</span> <span class="dt">Uint16</span>) expire
+
+  <span class="co">-- Initialization procedure:</span>
+  init <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> <span class="kw">do</span>
+    <span class="co">-- Trigger the timer for 1000 ticks:</span>
+    startTimer timer1 <span class="dv">1000</span>
+  
+  expire <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> <span class="kw">do</span>
+    call_ printf <span class="st">&quot;Timer expired!\r\n&quot;</span>
+
+  return init</code></pre></div>
+<p>This makes use of the <code>Ion</code> monad to return the entry procedure, which is required to start the timer counting in the first place. Also, due to some limitations, the timer’s behavior upon expiration is fixed at compile-time, though its countdown time is not (hence the 1000 we pass to <code>startTimer</code>). Rather than calling some external procedure when the timer expires (as we did in the prior section), we use <code>newProc</code> to define a procedure right there, and Ion takes care of giving it a name and having Ivory include it. To simplify things, we put the timer inside of <code>period 1</code> so it counts at the base rate - but if, for instance, the base rate were 1 millisecond, we might sensibly put the timer inside period 1000 so that its countdowns are all in seconds.</p>
+<p>The resultant C source is below:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// module timer Source:</span>
+
+<span class="ot">#include &quot;timer.h&quot;</span>
+<span class="dt">uint16_t</span> timer_0 = (<span class="dt">uint16_t</span>) 0U;
+<span class="dt">uint8_t</span> counter_decr_0 = (<span class="dt">uint8_t</span>) 0U;
+<span class="dt">void</span> timer_1(<span class="dt">void</span>)
+{
+    timer_0 = (<span class="dt">uint16_t</span>) 1000U;
+}
+<span class="dt">void</span> timer_2(<span class="dt">void</span>)
+{
+    printf(<span class="st">&quot;Timer expired!</span><span class="ch">\r\n</span><span class="st">&quot;</span>);
+}
+<span class="dt">void</span> timer(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule entry procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: timer.timer_0.decr */</span>
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint8_t</span>) 0U == counter_decr_0)) {
+        ion_decr_0();
+        counter_decr_0 = (<span class="dt">uint8_t</span>) 0U;
+    } <span class="kw">else</span> {
+        counter_decr_0 = (<span class="dt">uint8_t</span>) (counter_decr_0 - (<span class="dt">uint8_t</span>) 1U);
+    }
+}
+<span class="dt">void</span> ion_decr_0(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule procedure from Ion &amp; Ivory */</span>
+    <span class="co">/* Path: timer.timer_0.decr */</span>
+    <span class="co">/* Phase: 0 */</span>
+    <span class="co">/* Period: 1 */</span>
+    <span class="co">/* Action has no conditions */</span>
+    ;
+    
+    <span class="dt">uint16_t</span> n_deref0 = timer_0;
+    
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint16_t</span>) 0U == n_deref0)) { } <span class="kw">else</span> {
+        <span class="dt">uint16_t</span> n_cse1 = (<span class="dt">uint16_t</span>) (n_deref0 - (<span class="dt">uint16_t</span>) 1U);
+        
+        timer_0 = n_cse1;
+        <span class="kw">if</span> ((bool) (n_cse1 &gt; (<span class="dt">uint16_t</span>) 0U)) { } <span class="kw">else</span> {
+            timer_2();
+        }
+    }
+}</code></pre></div>
+<p>and the header:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// module timer Header:</span>
+
+<span class="ot">#include &quot;ivory.h&quot;</span>
+<span class="kw">extern</span> <span class="dt">uint16_t</span> timer_0;
+<span class="kw">extern</span> <span class="dt">uint8_t</span> counter_decr_0;
+<span class="dt">void</span> timer_1(<span class="dt">void</span>);
+<span class="dt">void</span> timer_2(<span class="dt">void</span>);
+<span class="dt">void</span> timer(<span class="dt">void</span>);
+<span class="dt">void</span> ion_decr_0(<span class="dt">void</span>);</code></pre></div>
+<p>This should look similar to the last section, but with the addition now of <code>timer_0</code>. Our procedure with <code>newProc</code> was also turned into the C function <code>timer_2</code>.</p>
+<h2 id="cps">CPS</h2>
+<p>The next example might be a bit trickier to understand, but I hope that it both explains both this functionality and what I mean when I talk about ‘composing’ things.</p>
+<p>I’ll start with a smaller piece rather than a larger one this time. Suppose we’re dealing with some kind of async API with <code>uint16_t transmit_async(uint16_t opcode, void (*callback)(uint16_t))</code> - it transmits <code>opcode</code>, it returns some kind of immediate success/error code as a <code>uint16_t</code> (perhaps an error indicates a failure to even transmit), and when the opcode returns a result, then it calls <code>callback</code> with some payload.</p>
+<p>Given the right machinery, this actually composes pretty easily with continuation-passing style. Consider the below, which connects this function to two other callbacks - a different “error” callback (perhaps we produce our own error code of another format), and a “success” callback - and returns for us an initialization procedure:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">exampleSend ::</span> <span class="dt">Word16</span> <span class="co">-- ^ Payload value (or something like that)</span>
+               <span class="ot">-&gt;</span> <span class="dt">Def</span> (<span class="ch">&#39;[Uint32] &#39;</span><span class="fu">:-&gt;</span> ()) <span class="co">-- ^ Error callback</span>
+               <span class="ot">-&gt;</span> <span class="dt">Def</span> (<span class="ch">&#39;[Uint16] &#39;</span><span class="fu">:-&gt;</span> ()) <span class="co">-- ^ Success callback</span>
+               <span class="ot">-&gt;</span> <span class="dt">Ion</span> (<span class="dt">Def</span> (<span class="ch">&#39;[] &#39;</span><span class="fu">:-&gt;</span> ()))
+exampleSend payload err succ <span class="fu">=</span> mdo
+
+  <span class="kw">let</span><span class="ot"> transmit_async ::</span> <span class="dt">Def</span> (<span class="ch">&#39;[Uint16, ProcPtr (&#39;</span>[<span class="dt">Uint16</span>] <span class="fu">:-&gt;</span> ())] <span class="fu">:-&gt;</span> <span class="dt">Uint32</span>)
+      transmit_async <span class="fu">=</span> importProc <span class="st">&quot;transmit_async&quot;</span> <span class="st">&quot;foo.h&quot;</span>
+
+  write <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> <span class="kw">do</span>
+    comment <span class="fu">$</span> <span class="st">&quot;Transmit value: &quot;</span> <span class="fu">++</span> show payload
+    <span class="co">-- Tell transmit_async to transmit this, and call us back at &#39;recv&#39;</span>
+    <span class="co">-- (which we define after):</span>
+    errCode <span class="ot">&lt;-</span> call transmit_async (fromIntegral payload) <span class="fu">$</span> procPtr recv
+    <span class="co">-- Check for a nonzero error code:</span>
+    ifte_ (errCode <span class="fu">/=?</span> <span class="dv">0</span>)
+      (call_ err errCode)
+      <span class="fu">$</span> return ()
+
+  recv <span class="ot">&lt;-</span> newProc <span class="fu">$</span> \value <span class="ot">-&gt;</span> body <span class="fu">$</span> <span class="kw">do</span>
+    <span class="co">-- Say that hypothetically we should have received the same value</span>
+    <span class="co">-- back, so check this first:</span>
+    ifte_ (value <span class="fu">/=?</span> fromIntegral payload)
+      <span class="co">-- If a mismatch, then call the error handler with some code:</span>
+      (call_ err <span class="bn">0x12345678</span>)
+      <span class="co">-- Otherwise, call the success handler:</span>
+      <span class="fu">$</span> call_ succ value
+
+  return write</code></pre></div>
+<p>Remember that timer module we used in the last section, and how it was parametrized over a callback to be called upon expiration? We could probably easily rig this into <code>exampleSend</code> so that a failure to receive a reply within N milliseconds would trigger the error callback. (I’m not going to do that - this is just an example of how one can combine callbacks.)</p>
+<p>Slight aside: You might notice the use of <code>mdo</code> again. This is because otherwise the definitions would have to go in reverse order of their calls. Consider the following:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">foo <span class="fu">=</span> <span class="kw">do</span>
+  call1 <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> call_ call2
+  call2 <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> call_ call3
+  call3 <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> call_ call4
+  call4 <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> call_ call5
+  <span class="fu">...</span>
+  callN <span class="ot">&lt;-</span> newProc <span class="fu">$</span> body <span class="fu">$</span> retVoid</code></pre></div>
+<p><code>call1</code> calls <code>call2</code>, which calls <code>call3</code>, which calls <code>call4</code>, and so on. They’re in the order in which they’d be called. However, this is invalid code, because the definition of <code>call1</code> relies on a definition that comes later. If we actually reordered these to be valid, then definitions would be backwards from the order in which they’re called. The simplest solution I found was just to use <code>mdo</code>.</p>
+<p>Back to <code>exampleSend</code>: Now that it’s defined in this format, we can build it up into larger things. Consider the below definition which invokes it three times:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">exampleChain ::</span> <span class="dt">Ion</span> (<span class="dt">Def</span> (<span class="ch">&#39;[] &#39;</span><span class="fu">:-&gt;</span> ()))
+exampleChain <span class="fu">=</span> mdo
+  <span class="kw">let</span><span class="ot"> error ::</span> <span class="dt">Def</span> (<span class="ch">&#39;[Uint32] :-&gt; ())</span>
+      error <span class="fu">=</span> importProc <span class="st">&quot;assert_error&quot;</span> <span class="st">&quot;something.h&quot;</span>
+
+  init <span class="ot">&lt;-</span> exampleSend <span class="bn">0x1234</span> error <span class="fu">=&lt;&lt;</span>
+          adapt_0_1 <span class="fu">=&lt;&lt;</span> exampleSend <span class="bn">0x2345</span> error <span class="fu">=&lt;&lt;</span>
+          adapt_0_1 <span class="fu">=&lt;&lt;</span> exampleSend <span class="bn">0x3456</span> error <span class="fu">=&lt;&lt;</span>
+          adapt_0_1 <span class="fu">=&lt;&lt;</span> exampleSend <span class="bn">0x4567</span> error success
+
+  success <span class="ot">&lt;-</span> newProc <span class="fu">$</span> \_ <span class="ot">-&gt;</span> body <span class="fu">$</span> <span class="kw">do</span>
+    call_ printf <span class="st">&quot;All calls succeeded!\r\n&quot;</span>
+
+  return init</code></pre></div>
+<p>This chains together 4 calls to <code>exampleSend</code> to create a procedure that will try to send opcodes 0x1234, 0x2345, 0x3456, and 0x4567. If any step fails, <code>assert_error</code> is called (though we could just as easily parametrize <code>exampleChain</code> over a separate error callback). If every step succeeds, it calls the internal procedure <code>success</code> (of course, again, we could parametrize over this callback too). It returns the entry procedure which starts this entire process.</p>
+<p>I haven’t explained <code>adapt_0_1</code> yet, but it’s just a piece of plumbing to stick together mismatched C functions. The success callback takes a single <code>Uint16</code>, but we for whatever reason don’t need it, so <code>adapt_0_1</code> throws away that value and just calls the entry procedure of <code>exampleSend</code> (which takes no arguments).</p>
+<p>This produces the below C code:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// module exampleChain Source:</span>
+
+<span class="ot">#include &quot;exampleChain.h&quot;</span>
+<span class="dt">void</span> exampleChain_0(<span class="dt">void</span>)
+{
+    <span class="co">/* Transmit value: 17767 */</span>
+    ;
+    
+    <span class="dt">uint32_t</span> n_r0 = transmit_async((<span class="dt">uint16_t</span>) 17767U, exampleChain_1);
+    
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint32_t</span>) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+<span class="dt">void</span> exampleChain_1(<span class="dt">uint16_t</span> n_var0)
+{
+    <span class="kw">if</span> ((bool) (n_var0 != (<span class="dt">uint16_t</span>) 17767U)) {
+        assert_error((<span class="dt">uint32_t</span>) 305419896U);
+    } <span class="kw">else</span> {
+        exampleChain_11(n_var0);
+    }
+}
+<span class="dt">void</span> exampleChain_2(<span class="dt">uint16_t</span> n_var0)
+{
+    exampleChain_0();
+}
+<span class="dt">void</span> exampleChain_3(<span class="dt">void</span>)
+{
+    <span class="co">/* Transmit value: 13398 */</span>
+    ;
+    
+    <span class="dt">uint32_t</span> n_r0 = transmit_async((<span class="dt">uint16_t</span>) 13398U, exampleChain_4);
+    
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint32_t</span>) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+<span class="dt">void</span> exampleChain_4(<span class="dt">uint16_t</span> n_var0)
+{
+    <span class="kw">if</span> ((bool) (n_var0 != (<span class="dt">uint16_t</span>) 13398U)) {
+        assert_error((<span class="dt">uint32_t</span>) 305419896U);
+    } <span class="kw">else</span> {
+        exampleChain_2(n_var0);
+    }
+}
+<span class="dt">void</span> exampleChain_5(<span class="dt">uint16_t</span> n_var0)
+{
+    exampleChain_3();
+}
+<span class="dt">void</span> exampleChain_6(<span class="dt">void</span>)
+{
+    <span class="co">/* Transmit value: 9029 */</span>
+    ;
+    
+    <span class="dt">uint32_t</span> n_r0 = transmit_async((<span class="dt">uint16_t</span>) 9029U, exampleChain_7);
+    
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint32_t</span>) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+<span class="dt">void</span> exampleChain_7(<span class="dt">uint16_t</span> n_var0)
+{
+    <span class="kw">if</span> ((bool) (n_var0 != (<span class="dt">uint16_t</span>) 9029U)) {
+        assert_error((<span class="dt">uint32_t</span>) 305419896U);
+    } <span class="kw">else</span> {
+        exampleChain_5(n_var0);
+    }
+}
+<span class="dt">void</span> exampleChain_8(<span class="dt">uint16_t</span> n_var0)
+{
+    exampleChain_6();
+}
+<span class="dt">void</span> exampleChain_9(<span class="dt">void</span>)
+{
+    <span class="co">/* Transmit value: 4660 */</span>
+    ;
+    
+    <span class="dt">uint32_t</span> n_r0 = transmit_async((<span class="dt">uint16_t</span>) 4660U, exampleChain_10);
+    
+    <span class="kw">if</span> ((bool) ((<span class="dt">uint32_t</span>) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+<span class="dt">void</span> exampleChain_10(<span class="dt">uint16_t</span> n_var0)
+{
+    <span class="kw">if</span> ((bool) (n_var0 != (<span class="dt">uint16_t</span>) 4660U)) {
+        assert_error((<span class="dt">uint32_t</span>) 305419896U);
+    } <span class="kw">else</span> {
+        exampleChain_8(n_var0);
+    }
+}
+<span class="dt">void</span> exampleChain_11(<span class="dt">uint16_t</span> n_var0)
+{
+    printf(<span class="st">&quot;All calls succeeded!</span><span class="ch">\r\n</span><span class="st">&quot;</span>);
+}
+<span class="dt">void</span> exampleChain(<span class="dt">void</span>)
+{
+    <span class="co">/* Auto-generated schedule entry procedure from Ion &amp; Ivory */</span>
+    ;
+}</code></pre></div>
+<p>and the below C header:</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="co">// module exampleChain Header:</span>
+
+<span class="ot">#include &quot;ivory.h&quot;</span>
+<span class="dt">void</span> exampleChain_0(<span class="dt">void</span>);
+<span class="dt">void</span> exampleChain_1(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_2(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_3(<span class="dt">void</span>);
+<span class="dt">void</span> exampleChain_4(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_5(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_6(<span class="dt">void</span>);
+<span class="dt">void</span> exampleChain_7(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_8(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_9(<span class="dt">void</span>);
+<span class="dt">void</span> exampleChain_10(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain_11(<span class="dt">uint16_t</span> n_var0);
+<span class="dt">void</span> exampleChain(<span class="dt">void</span>);</code></pre></div>
+<p>Note that this is all done with no static variables. It has no need to store a continuation, call stack, or anything of the sort. Of course, it’s not magic. You still need to use static variables for state that lives across calls, and external APIs have to store their callbacks someplace.</p>
+<p>Note one particular limitation here (the same one as with <code>timer</code>): When you parametrize an <code>Ion</code> over procedures, those procedures are fixed at C compile-time. Ivory may now allow some means of storing function pointers in such a manner that you could work past this limitation, but if memory serves me, when I wrote this Ivory had no way to store a function pointer in static memory. I accepted this limitation because it made for much better-defined behavior, as I saw it.</p>
+<p>This is fairly representative of the way that I used this functionality, just a bit simpler. When I used it for network communications, it took a form more akin to exception handling, as it would run through a sequence of steps for which the proper way to handle a failure differed depending on step. In that instance, I had an entire chain of shutdown steps (e.g. close TCP connection; drop modem connection; turn off modem; turn off UART; and disable power source), and callbacks would jump to different parts of it.</p>
+<h1 id="conclusions">Conclusions</h1>
+<p>Ion helped me immensely with generating large amounts of C plumbing whose behavior was very easy to reason about. It also cut both ways, as it made it trivial to very quickly occupy a lot of RAM, produce huge binaries, and generate a lot of very complex code very quickly.</p>
+<p>Much of the aforementioned plumbing was to bundle together the boilerplate that Ivory requires - things like <code>incl</code> for every single function that actually needs to be a C function by way of an Ivory procedure. In Haskell-world, one doesn’t normally think of having to explicitly declare each function, but Ivory inherits this C limitation. When Ion has to generate a lot of Ivory procedures and variables (particularly when I’m using it to parametrize these definitions over something), it has to accumulate all of this somehow and get it to Ivory’s compiler.</p>
+<p>I tried to fix the bugs in Ion that pertained to correctness, but it still has a lot of room for improvement when it comes to efficiency and comprehensibility of the generated code for scheduling, and part of that is because it errs on the side of paranoia.</p>
+<h1 id="hackery"><em>Appendix 1: Atom &amp; Ivory hackery</em></h1>
+<p>Atom and Ivory both generate C code, and to that end, both express many of the same features of the C programming language - very central things like expressions, variables, conditionals, and the C type system. However, they have different purposes in mind (otherwise, why would I be using both?) and were never really meant to interface with each other. The way they model those features then is identical or similar, but incompatible.</p>
+<p>However, I needed the two libraries to generate C code in the same build, to be able to refer to Atom variables from Ivory (and vice versa), and to have something in Ivory responsible for calling Atom’s main tick function.</p>
+<p>I ended up resorting to hacks like giving Atom and Ivory variables the same C name and relying on some incidental details of how to refer to functions. This worked, but it was ugly and error-prone, and it also bypassed proper typing. If I mismatched the names, the C code would probably fail to build. If I mismatched the types (for instance, my Atom variable is a <code>uint32_t</code> by way of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V">V Word32</a> and my Ivory variable is a <code>int16_t</code> by way of <a href="https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16">Sint16</a>), the generated C code might have had some subtle errors. In either case, Haskell saw no problems in type-checking, because I was only coincidentally coupling the two variables via the generated C code. This could be particularly nasty when I was trying to match pointer types properly, and cheating a little by writing the variable’s name as <code>&amp;foo</code> or <code>*foo</code>.</p>
+<p>As an aside, if I remember right, a fair number of the bugs discovered in the code were a direct result of me bypassing the type system in this manner.</p>
+<h1 id="coroutines"><em>Appendix 2: Limitations on Coroutines</em></h1>
+<p>Two pernicious limitation I ran into on Ivory’s coroutines were an inability to build up coroutines out of smaller parts, and an inability to take the <em>yield</em> escape hatch that a coroutine provided and pass it around like a first-class value. This wasn’t a slight against them - they are coroutines, behaving like coroutines but inheriting the C-derived limitations that Ivory purposely has, and I was trying to make them behave like something else.</p>
+<p>Consider coroutine A and coroutine B. As far as control flow goes, coroutine A can do a few things:</p>
+<ul>
+<li>return back to caller</li>
+<li>suspend itself with <em>yield</em></li>
+<li>resume coroutine B (or call it in the first place)</li>
+</ul>
+<p><em>(It can’t call itself, but that’s incidental here; Ivory’s coroutines store a continuation in static memory, so only one can be “live” at once.)</em></p>
+<p>However, returning and yielding don’t have any meaningful first-class form. Coroutine A can’t pass its own “return” to coroutine B, and let B return a value to its caller, nor can it pass its own “yield” elsewhere and let another context suspend it.</p>
+<p>In other words: these coroutines don’t provide their own continuations or an “exit” continuation; that’s all handled implicitly.</p>
+]]></summary>
+</entry>
+<entry>
     <title>ARMing Haskell</title>
     <link href="http://haskellembedded.github.io//posts/2015-12-15-arm.html" />
     <id>http://haskellembedded.github.io//posts/2015-12-15-arm.html</id>
