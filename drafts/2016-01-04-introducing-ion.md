@@ -1,15 +1,20 @@
 ---
 title: Introducing Ion
-date: January 4, 2016
+date: September 22, 2016
 author: Chris Hodapp
 tags: haskell
 ---
 
 To-do:
 
+- Get Ion up to date with Ivory master and hackage version
 - Get Ion onto Hackage.
-- Get a Nix build into Ion and maybe Ivory.
-- Write a post on Ivory?
+- Bullet-point list or short description: What is Ion?
+- Get a Nix build into Ion and maybe Ivory (?)
+- Write a post on Ivory (?)
+- Get a real example of CPS.
+- Get a real example of something with timing.
+- Composition-of-CPS example.
 
 Background: Atom & Ivory {#background}
 ====
@@ -18,19 +23,24 @@ Last year, I wrote a [few](./2015-02-17-atom-examples.html)
 [posts](./2015-02-20-atom-part-2-probes.lhs) on [Atom][].  Remember
 Atom?  If not, those posts might give some useful background.
 
-At [some work](./2015-02-06-how-i-got-here.md) at my (former) job, I
-was already using Atom in conjunction with [Ivory][], but those two
+At [some work](./2015-02-06-how-i-got-here.md) at my former job, I was
+already using Atom in conjunction with [Ivory][], but those two
 libraries really weren't made for interfacing with each other.  Atom
 predates Ivory, but they both model certain features of the C
 language, and as a result have many near-identical-but-incompatible
 constructs.  For some boring details on this, see the
 [section on this hackery](#hackery).
 
-Sometime after this, I decided to re-implement Atom's functionality
-in a more Ivory-friendly way.  I looked around in the Atom source code
+Sometime after this, I decided to re-implement Atom's functionality in
+a more Ivory-friendly way.  I looked around in the Atom source code
 first with the aim of adding an Ivory backend to it, however, I
-quickly gave up on this.  The internals were a bit too dense for me to
-follow, so I quickly gave up on this.
+quickly gave up on this as the internals were a bit too dense for me
+to follow.
+
+This post is badly-overdue, and for that I apologize.  For more
+information, track me down in
+[#haskell-embedded](irc://chat.freenode.net/%23haskell-embedded) or
+Ion's GitHub.
 
 Ion
 ====
@@ -52,6 +62,20 @@ Ion started here, but diverged somewhat later on.  I didn't manage to
 match all the features that are in Atom (and I note some of this in
 Ion's documentation), and I started down some other paths.
 
+What is Ion?
+----
+
+Ion, in brief, is a Haskell EDSL for concurrent, realtime, embedded
+programming.  It is targets the [Ivory][] EDSL and is coupled closely
+with it.
+
+I made Ion to cover two main cases:
+* Scheduling tasks ("tasks" loosely just meaning "little bits of
+  restricted Ivory code") that needed to execute on very strict
+  timing.
+* Handling tasks that may need to call other tasks asynchronously, and
+  ultimately work with a form of continuation-passing style.
+
 Async & CPS
 ====
 
@@ -68,14 +92,15 @@ and it sent no reply at all.
 
 The world of rigid, deterministic timing didn't really have a place
 for this sort of uncertainly-timed, non-deterministic, divergent
-behavior.  (Actually, I had tried my best to make some similar and
+behavior (someone's probably codified this into a theorem or
+something).  Actually, I had tried my best to make some similar and
 simpler procedures work in Atom.  I made specifications which ran with
 the same rigid timing regardless of when operations actually finished,
 and to make this reliable, I set that timing to be very slow, and had
 parts of the specification disabled if earlier steps failed.  It
 worked, but operations took up far more time than needed, and handling
 anything more divergent than 'if this failed, don't run that' might be
-very messy.)
+very messy.
 
 This also is a bit tricky to handle in C in any context without
 threads or coroutines.  It almost always will involve callbacks,
@@ -86,7 +111,7 @@ callback/interrupt handler/event handler will have to run in a
 separate scope - which means that any state that needs to make it
 'across' to that handler cannot reside on the stack.  It must be
 stored in some other form, and recovered at the handler. (I found out
-at some point that this has been [described already][usenix2002], it
+at some point that this has been [described already][usenix2002]: it
 is called *stack ripping*, and it comes with event-driven
 programming.)
 
@@ -97,9 +122,23 @@ static memory.
 As a side note, Ivory does provide a nice [coroutines][]
 implementation, but I ran into two issues with them: They put every
 variable (whether 'live' across a suspend/yield or not) into static
-memory, and they are not composable.  More on that later.
+memory, and they are not composable.
+[An appendix section](#coroutines) gives the details on this.
 
-Appendix: Atom & Ivory hackery {#hackery}
+I do not have a reference on this, but from memory, one of Oleg
+Kiselyov's papers defined a coroutine as something like, "two
+continuations calling each other."  After thinking on this a bit, I
+realized that coroutines weren't really the appropriate abstraction; I
+needed something more general, perhaps like a continuation, because
+ultimately what I was dealing with was
+[continuation-passing style][cps], and indeed CPS can express other
+patterns such as exceptions.  (After reading extensively about
+[Control.Monad.Cont][cont], I concluded that I had less of an idea
+than when I started on whether I could use *Cont*, *ContT*,
+*MonadCont*, or *callCC* to achieve this.  I was leaning towards "no,"
+but I still have no idea.)
+
+Appendix 1: Atom & Ivory hackery {#hackery}
 ====
 
 Atom and Ivory both generate C code, and to that end, both express
@@ -133,6 +172,12 @@ As an aside, if I remember right, a fair number of the bugs discovered
 in the code were a direct result of me bypassing the type system in
 this manner.
 
+Appendix 2: Limitations on Coroutines {#coroutines}
+====
+
+- See my UA notes around 2015-06-10.
+- Why don't they compose?
+
 [Ivory]: https://github.com/GaloisInc/ivory
 [Atom]: https://hackage.haskell.org/package/atom
 [atom_val]: http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V
@@ -142,3 +187,5 @@ this manner.
 [Rust]: https://www.rust-lang.org/
 [Redox]: http://www.redox-os.org/
 [coroutines]: https://github.com/GaloisInc/ivory/blob/master/ivory/src/Ivory/Language/Coroutine.hs
+[cps]: https://en.wikipedia.org/wiki/Continuation-passing_style
+[cont]: https://hackage.haskell.org/package/mtl/docs/Control-Monad-Cont.html
