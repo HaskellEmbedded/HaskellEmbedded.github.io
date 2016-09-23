@@ -51,7 +51,7 @@
             <h1>Introducing Ion</h1>
 
             <div class="info">
-    Posted on January  4, 2016
+    Posted on September 22, 2016
     
         by Chris Hodapp
     
@@ -64,29 +64,44 @@
 
 <p>To-do:</p>
 <ul>
+<li>Get Ion up to date with Ivory master and hackage version</li>
 <li>Get Ion onto Hackage.</li>
-<li>Get a Nix build into Ion and maybe Ivory.</li>
-<li>Write a post on Ivory?</li>
+<li>Bullet-point list or short description: What is Ion?</li>
+<li>Get a Nix build into Ion and maybe Ivory (?)</li>
+<li>Write a post on Ivory (?)</li>
+<li>Get a real example of CPS.</li>
+<li>Get a real example of something with timing.</li>
+<li>Composition-of-CPS example.</li>
 </ul>
 <h1 id="background">Background: Atom &amp; Ivory</h1>
 <p>Last year, I wrote a <a href="./2015-02-17-atom-examples.html">few</a> <a href="./2015-02-20-atom-part-2-probes.lhs">posts</a> on <a href="https://hackage.haskell.org/package/atom">Atom</a>. Remember Atom? If not, those posts might give some useful background.</p>
-<p>At <a href="./2015-02-06-how-i-got-here.md">some work</a> at my (former) job, I was already using Atom in conjunction with <a href="https://github.com/GaloisInc/ivory">Ivory</a>, but those two libraries really weren’t made for interfacing with each other. Atom predates Ivory, but they both model certain features of the C language, and as a result have many near-identical-but-incompatible constructs. For some boring details on this, see the <a href="#hackery">section on this hackery</a>.</p>
-<p>Sometime after this, I decided to re-implement Atom’s functionality in a more Ivory-friendly way. I looked around in the Atom source code first with the aim of adding an Ivory backend to it, however, I quickly gave up on this. The internals were a bit too dense for me to follow, so I quickly gave up on this.</p>
+<p>At <a href="./2015-02-06-how-i-got-here.md">some work</a> at my former job, I was already using Atom in conjunction with <a href="https://github.com/GaloisInc/ivory">Ivory</a>, but those two libraries really weren’t made for interfacing with each other. Atom predates Ivory, but they both model certain features of the C language, and as a result have many near-identical-but-incompatible constructs. For some boring details on this, see the <a href="#hackery">section on this hackery</a>.</p>
+<p>Sometime after this, I decided to re-implement Atom’s functionality in a more Ivory-friendly way. I looked around in the Atom source code first with the aim of adding an Ivory backend to it, however, I quickly gave up on this as the internals were a bit too dense for me to follow.</p>
+<p>This post is badly-overdue, and for that I apologize. For more information, track me down in <a href="irc://chat.freenode.net/%23haskell-embedded">#haskell-embedded</a> or Ion’s GitHub.</p>
 <h1 id="ion">Ion</h1>
 <p>Here, then, is where I started writing the <a href="https://github.com/HaskellEmbedded/ion">Ion</a> library from scratch. The name ‘Ion’ is a pun that’s a reference to ‘Atom’ and meaning loosely that while Atom is more standalone, Ion exists bonded to another library, Ivory. (I should probably move away from chemistry puns and leave that up to things like <a href="https://www.rust-lang.org/">Rust</a> and <a href="http://www.redox-os.org/">Redox</a>.)</p>
 <p>For the most part, I liked the way that Atom worked, and I wanted Ion to behave very similarly. Particularly, I liked the way that I could modularize a specification with the Atom monad, the way that specs could ‘inherit’ schedule parameters, the single run-time report giving the entire schedule of the system, and the checks that Atom’s compiler did to ensure that specifications were sensible.</p>
 <p>Ion started here, but diverged somewhat later on. I didn’t manage to match all the features that are in Atom (and I note some of this in Ion’s documentation), and I started down some other paths.</p>
+<h2 id="what-is-ion">What is Ion?</h2>
+<p>Ion, in brief, is a Haskell EDSL for concurrent, realtime, embedded programming. It is targets the <a href="https://github.com/GaloisInc/ivory">Ivory</a> EDSL and is coupled closely with it.</p>
+<p>I made Ion to cover two main cases: * Scheduling tasks (“tasks” loosely just meaning “little bits of restricted Ivory code”) that needed to execute on very strict timing. * Handling tasks that may need to call other tasks asynchronously, and ultimately work with a form of continuation-passing style.</p>
 <h1 id="async-cps">Async &amp; CPS</h1>
 <p>In the application that was using Ion, I started integrating in some support for network communication. This involved many operations of transmitting a command over a UART, waiting for a reply sometime in the future which contained the result of that command. Or, maybe it didn’t - maybe it just contained some minor error, and the command should be retried. Or, maybe it was a fatal error, and the only thing left to do was try to close down the connections, power off the modem, and power off the UART. Or, maybe the reply was just total garbage from the UART. Or, maybe something left the modem in a weird state, and it sent no reply at all.</p>
-<p>The world of rigid, deterministic timing didn’t really have a place for this sort of uncertainly-timed, non-deterministic, divergent behavior. (Actually, I had tried my best to make some similar and simpler procedures work in Atom. I made specifications which ran with the same rigid timing regardless of when operations actually finished, and to make this reliable, I set that timing to be very slow, and had parts of the specification disabled if earlier steps failed. It worked, but operations took up far more time than needed, and handling anything more divergent than ‘if this failed, don’t run that’ might be very messy.)</p>
-<p>This also is a bit tricky to handle in C in any context without threads or coroutines. It almost always will involve callbacks, interrupts, or events - some scope starts an asynchronous operation (e.g. triggering an ADC measurement), and the result comes in the form of an interrupt handler or callback later being called. That callback/interrupt handler/event handler will have to run in a separate scope - which means that any state that needs to make it ‘across’ to that handler cannot reside on the stack. It must be stored in some other form, and recovered at the handler. (I found out at some point that this has been <a href="https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html">described already</a>, it is called <em>stack ripping</em>, and it comes with event-driven programming.)</p>
+<p>The world of rigid, deterministic timing didn’t really have a place for this sort of uncertainly-timed, non-deterministic, divergent behavior (someone’s probably codified this into a theorem or something). Actually, I had tried my best to make some similar and simpler procedures work in Atom. I made specifications which ran with the same rigid timing regardless of when operations actually finished, and to make this reliable, I set that timing to be very slow, and had parts of the specification disabled if earlier steps failed. It worked, but operations took up far more time than needed, and handling anything more divergent than ‘if this failed, don’t run that’ might be very messy.</p>
+<p>This also is a bit tricky to handle in C in any context without threads or coroutines. It almost always will involve callbacks, interrupts, or events - some scope starts an asynchronous operation (e.g. triggering an ADC measurement), and the result comes in the form of an interrupt handler or callback later being called. That callback/interrupt handler/event handler will have to run in a separate scope - which means that any state that needs to make it ‘across’ to that handler cannot reside on the stack. It must be stored in some other form, and recovered at the handler. (I found out at some point that this has been <a href="https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html">described already</a>: it is called <em>stack ripping</em>, and it comes with event-driven programming.)</p>
 <p>That’s annoying as-is, but in my case, I didn’t even have a heap from which to dynamically allocate, so the only remaining option was static memory.</p>
-<p>As a side note, Ivory does provide a nice <a href="https://github.com/GaloisInc/ivory/blob/master/ivory/src/Ivory/Language/Coroutine.hs">coroutines</a> implementation, but I ran into two issues with them: They put every variable (whether ‘live’ across a suspend/yield or not) into static memory, and they are not composable. More on that later.</p>
-<h1 id="hackery">Appendix: Atom &amp; Ivory hackery</h1>
+<p>As a side note, Ivory does provide a nice <a href="https://github.com/GaloisInc/ivory/blob/master/ivory/src/Ivory/Language/Coroutine.hs">coroutines</a> implementation, but I ran into two issues with them: They put every variable (whether ‘live’ across a suspend/yield or not) into static memory, and they are not composable. <a href="#coroutines">An appendix section</a> gives the details on this.</p>
+<p>I do not have a reference on this, but from memory, one of Oleg Kiselyov’s papers defined a coroutine as something like, “two continuations calling each other.” After thinking on this a bit, I realized that coroutines weren’t really the appropriate abstraction; I needed something more general, perhaps like a continuation, because ultimately what I was dealing with was <a href="https://en.wikipedia.org/wiki/Continuation-passing_style">continuation-passing style</a>, and indeed CPS can express other patterns such as exceptions. (After reading extensively about <a href="https://hackage.haskell.org/package/mtl/docs/Control-Monad-Cont.html">Control.Monad.Cont</a>, I concluded that I had less of an idea than when I started on whether I could use <em>Cont</em>, <em>ContT</em>, <em>MonadCont</em>, or <em>callCC</em> to achieve this. I was leaning towards “no,” but I still have no idea.)</p>
+<h1 id="hackery">Appendix 1: Atom &amp; Ivory hackery</h1>
 <p>Atom and Ivory both generate C code, and to that end, both express many of the same features of the C programming language - very central things like expressions, variables, conditionals, and the C type system. However, they have different purposes in mind (otherwise, why would I be using both?) and were never really meant to interface with each other. The way they model those features then is identical or similar, but incompatible.</p>
 <p>However, I needed the two libraries to generate C code in the same build, to be able to refer to Atom variables from Ivory (and vice versa), and to have something in Ivory responsible for calling Atom’s main tick function.</p>
 <p>I ended up resorting to hacks like giving Atom and Ivory variables the same C name and relying on some incidental details of how to refer to functions. This worked, but it was ugly and error-prone, and it also bypassed proper typing. If I mismatched the names, the C code would probably fail to build. If I mismatched the types (for instance, my Atom variable is a <code>uint32_t</code> by way of <a href="http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V">V Word32</a> and my Ivory variable is a <code>int16_t</code> by way of <a href="https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16">Sint16</a>), the generated C code might have had some subtle errors. In either case, Haskell saw no problems in type-checking, because I was only coincidentally coupling the two variables via the generated C code. This could be particularly nasty when I was trying to match pointer types properly, and cheating a little by writing the variable’s name as <code>&amp;foo</code> or <code>*foo</code>.</p>
 <p>As an aside, if I remember right, a fair number of the bugs discovered in the code were a direct result of me bypassing the type system in this manner.</p>
+<h1 id="coroutines">Appendix 2: Limitations on Coroutines</h1>
+<ul>
+<li>See my UA notes around 2015-06-10.</li>
+<li>Why don’t they compose?</li>
+</ul>
 
         </div>
         <div id="footer">
