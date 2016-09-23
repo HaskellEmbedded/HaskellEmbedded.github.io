@@ -20,8 +20,8 @@ Last year, I wrote a [few](./2015-02-17-atom-examples.html)
 [posts](./2015-02-20-atom-part-2-probes.lhs) on [Atom][].  Remember
 Atom?  If not, those posts might give some useful background.
 
-At [some work](./2015-02-06-how-i-got-here.md) at my former job, I was
-already using Atom in conjunction with [Ivory][], but those two
+At [some work](./2015-02-06-how-i-got-here.html) at my former job, I
+was already using Atom in conjunction with [Ivory][], but those two
 libraries really weren't made for interfacing with each other.  Atom
 predates Ivory, but they both model certain features of the C
 language, and as a result have many near-identical-but-incompatible
