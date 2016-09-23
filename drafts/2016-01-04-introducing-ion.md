@@ -123,7 +123,12 @@ As a side note, Ivory does provide a nice [coroutines][]
 implementation, but I ran into two issues with them: They put every
 variable (whether 'live' across a suspend/yield or not) into static
 memory, and they are not composable.
-[An appendix section](#coroutines) gives the details on this.
+[An appendix section](#coroutines) gives some more details on this.
+
+I wanted coroutines I could parametrize over other coroutines
+(higher-order coroutines?), which seemed to require something like a
+coroutine whose 'resume' continuation and 'exit' continuation both
+were reified rather than implicit.
 
 I do not have a reference on this, but from memory, one of Oleg
 Kiselyov's papers defined a coroutine as something like, "two
@@ -175,8 +180,31 @@ this manner.
 Appendix 2: Limitations on Coroutines {#coroutines}
 ====
 
-- See my UA notes around 2015-06-10.
-- Why don't they compose?
+Two pernicious limitation I ran into on Ivory's coroutines were an
+inability to build up coroutines out of smaller parts, and an
+inability to take the *yield* escape hatch that a coroutine provided
+and pass it around like a first-class value.  This wasn't a slight
+against them - they are coroutines, behaving like coroutines but
+inheriting the C-derived limitations that Ivory purposely has, and I
+was trying to make them behave like something else.
+
+Consider coroutine A and coroutine B.  As far as control flow goes,
+coroutine A can do a few things:
+* return back to caller
+* suspend itself with *yield*
+* resume coroutine B (or call it in the first place)
+
+*(It can't call itself, but that's incidental here; Ivory's coroutines
+store a continuation in static memory, so only one can be "live" at
+once.)*
+
+However, returning and yielding don't have any meaningful first-class
+form.  Coroutine A can't pass its own "return" to coroutine B, and let
+B return a value to its caller, nor can it pass its own "yield"
+elsewhere and let another context suspend it.
+
+In other words: these coroutines don't provide their own continuations
+or an "exit" continuation; that's all handled indirectly.
 
 [Ivory]: https://github.com/GaloisInc/ivory
 [Atom]: https://hackage.haskell.org/package/atom
