@@ -1,19 +1,17 @@
 ---
 title: Introducing Ion
-date: September 22, 2016
+date: September 23, 2016
 author: Chris Hodapp
-tags: haskell
+tags: haskell, ivory
 ---
-
-- Get Ion up to date with Ivory master and hackage version
-- Get Ion onto Hackage.
 
 Really Short Version
 ====
 
 [Ion][] is a Haskell EDSL that I wrote for concurrent, realtime,
-embedded programming, targeting the [Ivory][] EDSL.  It's on hackage.
-It's rather experimental.
+embedded programming, targeting the [Ivory][] EDSL.  I finally
+released it to [hackage][ion_hackage].  It's still rather
+experimental.
 
 Background: Atom & Ivory {#background}
 ====
@@ -37,7 +35,7 @@ quickly gave up on this as the internals were a bit too dense for me
 to follow.
 
 This post is badly-overdue, and for that I apologize.  For more
-information, track me down in
+information, track me (hodapp) down in
 [#haskell-embedded](irc://chat.freenode.net/%23haskell-embedded) or
 Ion's GitHub.
 
@@ -73,8 +71,8 @@ I made Ion to cover two main cases:
 - Scheduling tasks ("tasks" loosely just meaning "little bits of
   restricted Ivory code") that needed to execute on very strict
   timing.
-- Handling tasks that may need to call other tasks asynchronously, and
-  ultimately work with a form of continuation-passing style.
+- Using continuating-passing style to compose together asychronous
+  tasks (particularly those that call around with callbacks).
 
 I sort of gloss over the "why?" of the first part because it's almost
 all of the same reasons of why Atom exists.  I try to answer the
@@ -87,12 +85,19 @@ In the application that was using Ion, I started integrating in some
 support for network communication via a SIM800 GSM modem.  This
 involved many operations of transmitting a command over a UART,
 waiting for a reply sometime in the future which contained the result
-of that command.  Or, maybe it didn't - maybe it just contained some
-minor error, and the command should be retried.  Or, maybe it was a
-fatal error, and the only thing left to do was try to close down the
-connections, power off the modem, and power off the UART.  Or, maybe
-the reply was just total garbage from the UART.  Or, maybe something
-left the modem in a weird state, and it sent no reply at all.
+of that command - perhaps an HTTP payload or something.
+
+Or, maybe it didn't - maybe it just contained some minor error, and
+the command should be retried.
+
+Or, maybe it was a fatal error, and the only thing left to do was try
+to close down the connections, power off the modem, and power off the
+UART.
+
+Or, maybe the reply was just total garbage from the UART.
+
+Or, maybe something left the modem in a weird state, and it sent no
+reply at all because it's still waiting for us to do something.
 
 The world of rigid, deterministic timing didn't really have a place
 for this sort of uncertainly-timed, non-deterministic, divergent
@@ -103,8 +108,8 @@ the same rigid timing regardless of when operations actually finished,
 and to make this reliable, I set that timing to be very slow, and had
 parts of the specification disabled if earlier steps failed.  It
 worked, but operations took up far more time than needed, and handling
-anything more divergent than 'if this failed, don't run that' might be
-very messy.
+anything more divergent than *if this fails, don't run that* would
+become very messy.
 
 This also is a bit tricky to handle in C in any context without
 threads or coroutines.  It almost always will involve callbacks,
@@ -144,10 +149,10 @@ needed something more general, perhaps like a continuation, because
 ultimately what I was dealing with was
 [continuation-passing style][cps], and indeed CPS can express other
 patterns such as exceptions.  (After reading extensively about
-[Control.Monad.Cont][cont], I concluded that I had less of an idea
-than when I started on whether I could use `Cont`, `ContT`,
-`MonadCont`, or `callCC` to achieve this.  I was leaning towards "no,"
-but I still have no idea.)
+[Control.Monad.Cont][cont] and trying to discern whether I could use
+`Cont`, `ContT`, `MonadCont`, or `callCC` to achieve this, I decided
+that I had even less of an idea than when I started.  I was leaning
+towards "no," but I still have no idea.)
 
 In the end, I ignored coroutines completely.  I made a couple basic
 abstractions and some plumbing to make them practically usable, and
@@ -164,8 +169,8 @@ the context of the much larger [Shake][] build it was in and the
 entire associated toolchain.
 
 However, I've tried to create some representative examples to a
-hypothetical C API.  See [Example.hs][] for
-these examples in a more buildable form.
+hypothetical C API.  See [Example.hs][] for these examples in a more
+buildable form (at least as far as the Haskell part goes).
 
 Scheduling
 ----
@@ -460,8 +465,9 @@ scheduling function ("schedule entry procedure") that must be called
 at the base rate through a timer, an interrupt, or something of the
 sort for anything to work right.  Often this must be set up outside of
 Ivory because Ivory really isn't interested in whatever C/ASM black
-magic the timer requires. Also, the name of that function is what we
-supplied to `ionCompile`.
+magic the timer requires - go do that, hide it, and don't let Ivory
+know about it. Also, the name of that function is what we supplied to
+`ionCompile`.
 
 It has also produced several variables, all of the `counter_` ones,
 which are used for establishing the correct periods and phases.  Take
@@ -947,6 +953,7 @@ or an "exit" continuation; that's all handled implicitly.
 [atom_val]: http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V
 [Sint16]: https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16
 [Ion]: https://github.com/HaskellEmbedded/ion
+[ion_hackage]: https://hackage.haskell.org/package/ion-1.0.0.0
 [usenix2002]: https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html
 [Rust]: https://www.rust-lang.org/
 [Redox]: http://www.redox-os.org/

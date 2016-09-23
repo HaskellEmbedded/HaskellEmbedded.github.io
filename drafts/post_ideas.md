@@ -12,7 +12,6 @@ tags:
 - Post on Hipster, your MIPSy EDSL thingy!
 
 # Hodapp
-- An introduction/release of Ion (badly overdue).
 - Integrating Ivory and Shake (I really should try out
 [shake-language-c][]).
 - Bluetooth Low Energy services & characteristics, and how much Ivory

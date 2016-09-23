@@ -7,10 +7,6 @@ author: Chris Hodapp
 Ion to-do
 ====
 Ion post to-do list
-- I'd like Ion to be on Hackage. Does Ion require latest Ivory, or
-does the Hackage version work fine?  If Hackage version is fine, then
-I need not touch Ivory.  If newer is needed, then perhaps I should get
-Ivory into NixOS.
 - How do I get a nix specification into 'official' channels?
 - It might be good to get both Ion and Ivory into NixOS.
 
