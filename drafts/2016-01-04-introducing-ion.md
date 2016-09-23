@@ -5,15 +5,8 @@ author: Chris Hodapp
 tags: haskell
 ---
 
-To-do:
-
 - Get Ion up to date with Ivory master and hackage version
 - Get Ion onto Hackage.
-- Get a Nix build into Ion and maybe Ivory (?)
-- Get a real example of CPS.
-- Get a real example of something with timing.
-- Composition-of-CPS example.
-- Grep for all TODO elsewhere here
 
 Really Short Version
 ====
@@ -21,8 +14,6 @@ Really Short Version
 [Ion][] is a Haskell EDSL that I wrote for concurrent, realtime,
 embedded programming, targeting the [Ivory][] EDSL.  It's on hackage.
 It's rather experimental.
-
--- TODO: hackage link above
 
 Background: Atom & Ivory {#background}
 ====
@@ -158,11 +149,10 @@ than when I started on whether I could use `Cont`, `ContT`,
 `MonadCont`, or `callCC` to achieve this.  I was leaning towards "no,"
 but I still have no idea.)
 
-From here, it was a couple basic abstractions... and then considerable
-plumbing to get this into a form that could be practically used with
-existing C APIs.  Ivory's procedures rather mimic C functions, and C
-functions are rather lacking for things like partial application or
-higher-order functions.
+In the end, I ignored coroutines completely.  I made a couple basic
+abstractions and some plumbing to make them practically usable, and
+this worked well for me.  The [CPS](#cps) section gives some further
+examples on this.
 
 Examples
 ====
@@ -602,13 +592,276 @@ the C function `timer_2`.
 CPS
 ----
 
+The next example might be a bit trickier to understand, but I hope
+that it both explains both this functionality and what I mean when I
+talk about 'composing' things.
+
+I'll start with a smaller piece rather than a larger one this time.
+Suppose we're dealing with some kind of async API with `uint16_t
+transmit_async(uint16_t opcode, void (*callback)(uint16_t))` - it
+transmits `opcode`, it returns some kind of immediate success/error
+code as a `uint16_t` (perhaps an error indicates a failure to even
+transmit), and when the opcode returns a result, then it calls
+`callback` with some payload.
+
+Given the right machinery, this actually composes pretty easily with
+continuation-passing style.  Consider the below, which connects this
+function to two other callbacks - a different "error" callback
+(perhaps we produce our own error code of another format), and a
+"success" callback - and returns for us an initialization procedure:
+
+```haskell
+exampleSend :: Word16 -- ^ Payload value (or something like that)
+               -> Def ('[Uint32] ':-> ()) -- ^ Error callback
+               -> Def ('[Uint16] ':-> ()) -- ^ Success callback
+               -> Ion (Def ('[] ':-> ()))
+exampleSend payload err succ = mdo
+
+  let transmit_async :: Def ('[Uint16, ProcPtr ('[Uint16] :-> ())] :-> Uint32)
+      transmit_async = importProc "transmit_async" "foo.h"
+
+  write <- newProc $ body $ do
+    comment $ "Transmit value: " ++ show payload
+    -- Tell transmit_async to transmit this, and call us back at 'recv'
+    -- (which we define after):
+    errCode <- call transmit_async (fromIntegral payload) $ procPtr recv
+    -- Check for a nonzero error code:
+    ifte_ (errCode /=? 0)
+      (call_ err errCode)
+      $ return ()
+
+  recv <- newProc $ \value -> body $ do
+    -- Say that hypothetically we should have received the same value
+    -- back, so check this first:
+    ifte_ (value /=? fromIntegral payload)
+      -- If a mismatch, then call the error handler with some code:
+      (call_ err 0x12345678)
+      -- Otherwise, call the success handler:
+      $ call_ succ value
+
+  return write
+```
+
+Remember that timer module we used in the last section, and how it was
+parametrized over a callback to be called upon expiration?  We could
+probably easily rig this into `exampleSend` so that a failure to
+receive a reply within N milliseconds would trigger the error
+callback.  (I'm not going to do that - this is just an example of how
+one can combine callbacks.)
+
+Slight aside: You might notice the use of `mdo` again.  This is
+because otherwise the definitions would have to go in reverse order of
+their calls.  Consider the following:
+
+```haskell
+foo = do
+  call1 <- newProc $ body $ call_ call2
+  call2 <- newProc $ body $ call_ call3
+  call3 <- newProc $ body $ call_ call4
+  call4 <- newProc $ body $ call_ call5
+  ...
+  callN <- newProc $ body $ retVoid
+```
+
+`call1` calls `call2`, which calls `call3`, which calls `call4`, and
+so on.  They're in the order in which they'd be called.  However, this
+is invalid code, because the definition of `call1` relies on a
+definition that comes later.  If we actually reordered these to be
+valid, then definitions would be backwards from the order in which
+they're called.  The simplest solution I found was just to use `mdo`.
+
+Back to `exampleSend`: Now that it's defined in this format, we can
+build it up into larger things. Consider the below definition which
+invokes it three times:
+
+```haskell
+exampleChain :: Ion (Def ('[] ':-> ()))
+exampleChain = mdo
+  let error :: Def ('[Uint32] :-> ())
+      error = importProc "assert_error" "something.h"
+
+  init <- exampleSend 0x1234 error =<<
+          adapt_0_1 =<< exampleSend 0x2345 error =<<
+          adapt_0_1 =<< exampleSend 0x3456 error =<<
+          adapt_0_1 =<< exampleSend 0x4567 error success
+
+  success <- newProc $ \_ -> body $ do
+    call_ printf "All calls succeeded!\r\n"
+
+  return init
+```
+
+This chains together 4 calls to `exampleSend` to create a procedure
+that will try to send opcodes 0x1234, 0x2345, 0x3456, and 0x4567.  If
+any step fails, `assert_error` is called (though we could just as
+easily parametrize `exampleChain` over a separate error callback).  If
+every step succeeds, it calls the internal procedure `success` (of
+course, again, we could parametrize over this callback too).  It
+returns the entry procedure which starts this entire process.
+
+I haven't explained `adapt_0_1` yet, but it's just a piece of plumbing
+to stick together mismatched C functions.  The success callback takes
+a single `Uint16`, but we for whatever reason don't need it, so
+`adapt_0_1` throws away that value and just calls the entry procedure
+of `exampleSend` (which takes no arguments).
+
+This produces the below C code:
+
+```c
+// module exampleChain Source:
+
+#include "exampleChain.h"
+void exampleChain_0(void)
+{
+    /* Transmit value: 17767 */
+    ;
+    
+    uint32_t n_r0 = transmit_async((uint16_t) 17767U, exampleChain_1);
+    
+    if ((bool) ((uint32_t) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+void exampleChain_1(uint16_t n_var0)
+{
+    if ((bool) (n_var0 != (uint16_t) 17767U)) {
+        assert_error((uint32_t) 305419896U);
+    } else {
+        exampleChain_11(n_var0);
+    }
+}
+void exampleChain_2(uint16_t n_var0)
+{
+    exampleChain_0();
+}
+void exampleChain_3(void)
+{
+    /* Transmit value: 13398 */
+    ;
+    
+    uint32_t n_r0 = transmit_async((uint16_t) 13398U, exampleChain_4);
+    
+    if ((bool) ((uint32_t) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+void exampleChain_4(uint16_t n_var0)
+{
+    if ((bool) (n_var0 != (uint16_t) 13398U)) {
+        assert_error((uint32_t) 305419896U);
+    } else {
+        exampleChain_2(n_var0);
+    }
+}
+void exampleChain_5(uint16_t n_var0)
+{
+    exampleChain_3();
+}
+void exampleChain_6(void)
+{
+    /* Transmit value: 9029 */
+    ;
+    
+    uint32_t n_r0 = transmit_async((uint16_t) 9029U, exampleChain_7);
+    
+    if ((bool) ((uint32_t) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+void exampleChain_7(uint16_t n_var0)
+{
+    if ((bool) (n_var0 != (uint16_t) 9029U)) {
+        assert_error((uint32_t) 305419896U);
+    } else {
+        exampleChain_5(n_var0);
+    }
+}
+void exampleChain_8(uint16_t n_var0)
+{
+    exampleChain_6();
+}
+void exampleChain_9(void)
+{
+    /* Transmit value: 4660 */
+    ;
+    
+    uint32_t n_r0 = transmit_async((uint16_t) 4660U, exampleChain_10);
+    
+    if ((bool) ((uint32_t) 0U != n_r0)) {
+        assert_error(n_r0);
+    }
+}
+void exampleChain_10(uint16_t n_var0)
+{
+    if ((bool) (n_var0 != (uint16_t) 4660U)) {
+        assert_error((uint32_t) 305419896U);
+    } else {
+        exampleChain_8(n_var0);
+    }
+}
+void exampleChain_11(uint16_t n_var0)
+{
+    printf("All calls succeeded!\r\n");
+}
+void exampleChain(void)
+{
+    /* Auto-generated schedule entry procedure from Ion & Ivory */
+    ;
+}
+```
+
+and the below C header:
+
+```c
+// module exampleChain Header:
+
+#include "ivory.h"
+void exampleChain_0(void);
+void exampleChain_1(uint16_t n_var0);
+void exampleChain_2(uint16_t n_var0);
+void exampleChain_3(void);
+void exampleChain_4(uint16_t n_var0);
+void exampleChain_5(uint16_t n_var0);
+void exampleChain_6(void);
+void exampleChain_7(uint16_t n_var0);
+void exampleChain_8(uint16_t n_var0);
+void exampleChain_9(void);
+void exampleChain_10(uint16_t n_var0);
+void exampleChain_11(uint16_t n_var0);
+void exampleChain(void);
+```
+
+Note that this is all done with no static variables.  It has no need
+to store a continuation, call stack, or anything of the sort.  Of
+course, it's not magic.  You still need to use static variables for
+state that lives across calls, and external APIs have to store their
+callbacks someplace.
+
+Note one particular limitation here (the same one as with `timer`):
+When you parametrize an `Ion` over procedures, those procedures are
+fixed at C compile-time.  Ivory may now allow some means of storing
+function pointers in such a manner that you could work past this
+limitation, but if memory serves me, when I wrote this Ivory had no
+way to store a function pointer in static memory.  I accepted this
+limitation because it made for much better-defined behavior, as I saw
+it.
+
+This is fairly representative of the way that I used this
+functionality, just a bit simpler.  When I used it for network
+communications, it took a form more akin to exception handling, as it
+would run through a sequence of steps for which the proper way to
+handle a failure differed depending on step.  In that instance, I had
+an entire chain of shutdown steps (e.g. close TCP connection; drop
+modem connection; turn off modem; turn off UART; and disable power
+source), and callbacks would jump to different parts of it.
+
 Conclusions
 ====
 
 Ion helped me immensely with generating large amounts of C plumbing
-whose behavior was very easy to reason about.  It cut both ways, as it
-also made it trivial to very quickly occupy a lot of RAM, produce huge
-binaries, and generate a lot of very complex code very quickly.
+whose behavior was very easy to reason about.  It also cut both ways,
+as it made it trivial to very quickly occupy a lot of RAM, produce
+huge binaries, and generate a lot of very complex code very quickly.
 
 Much of the aforementioned plumbing was to bundle together the
 boilerplate that Ivory requires - things like `incl` for every single
@@ -624,12 +877,6 @@ I tried to fix the bugs in Ion that pertained to correctness, but it
 still has a lot of room for improvement when it comes to efficiency
 and comprehensibility of the generated code for scheduling, and part
 of that is because it errs on the side of paranoia.
-
-I coupled together in the Ion monad the functionality for the
-strictly-timed scheduling, and all of the continuating-passing
-rigging.  To me, these felt like two pieces that should have been
-separate, however, I wasn't able to find a satisfactory way to do
-this.
 
 *Appendix 1: Atom & Ivory hackery* {#hackery}
 ====
