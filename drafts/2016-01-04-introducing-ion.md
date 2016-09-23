@@ -465,12 +465,12 @@ void ion_schedule_7(void);
 ```
 
 `simpleSchedule` is the most important of this: This is the main
-scheduling function that must be called at the base rate (through a
-timer, an interrupt, or something of the sort) for anything to work
-right.  Often this must be set up outside of Ivory because Ivory
-really isn't interested in whatever C/ASM black magic the timer
-requires. Also, the name of that function is what we supplied to
-`ionCompile`.
+scheduling function ("schedule entry procedure") that must be called
+at the base rate through a timer, an interrupt, or something of the
+sort for anything to work right.  Often this must be set up outside of
+Ivory because Ivory really isn't interested in whatever C/ASM black
+magic the timer requires. Also, the name of that function is what we
+supplied to `ionCompile`.
 
 It has also produced several variables, all of the `counter_` ones,
 which are used for establishing the correct periods and phases.  Take
@@ -496,6 +496,107 @@ that path determines how it is scheduled.
 Timers
 ----
 
+Here's a shorter example that incorporates Ion's resettable timers
+(note the use of `mdo` so we may define the timer first; this will
+need `{-# LANGUAGE RecursiveDo #-}`):
+
+```haskell
+exampleTimer :: Ion (Def ('[] ':-> ()))
+exampleTimer = ion "timer" $ mdo
+
+  -- Timer is initialized with a Uint16; procedure called at
+  -- expiration is fixed at compile-time:
+  timer1 <- period 1 $ timer (Proxy :: Proxy Uint16) expire
+
+  -- Initialization procedure:
+  init <- newProc $ body $ do
+    -- Trigger the timer for 1000 ticks:
+    startTimer timer1 1000
+  
+  expire <- newProc $ body $ do
+    call_ printf "Timer expired!\r\n"
+
+  return init
+```
+
+This makes use of the `Ion` monad to return the entry procedure, which
+is required to start the timer counting in the first place.  Also, due
+to some limitations, the timer's behavior upon expiration is fixed at
+compile-time, though its countdown time is not (hence the 1000 we pass
+to `startTimer`).  Rather than calling some external procedure when
+the timer expires (as we did in the prior section), we use `newProc`
+to define a procedure right there, and Ion takes care of giving it a
+name and having Ivory include it.  To simplify things, we put the
+timer inside of `period 1` so it counts at the base rate - but if, for
+instance, the base rate were 1 millisecond, we might sensibly put the
+timer inside period 1000 so that its countdowns are all in seconds.
+
+The resultant C source is below:
+
+```c
+// module timer Source:
+
+#include "timer.h"
+uint16_t timer_0 = (uint16_t) 0U;
+uint8_t counter_decr_0 = (uint8_t) 0U;
+void timer_1(void)
+{
+    timer_0 = (uint16_t) 1000U;
+}
+void timer_2(void)
+{
+    printf("Timer expired!\r\n");
+}
+void timer(void)
+{
+    /* Auto-generated schedule entry procedure from Ion & Ivory */
+    /* Path: timer.timer_0.decr */
+    if ((bool) ((uint8_t) 0U == counter_decr_0)) {
+        ion_decr_0();
+        counter_decr_0 = (uint8_t) 0U;
+    } else {
+        counter_decr_0 = (uint8_t) (counter_decr_0 - (uint8_t) 1U);
+    }
+}
+void ion_decr_0(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: timer.timer_0.decr */
+    /* Phase: 0 */
+    /* Period: 1 */
+    /* Action has no conditions */
+    ;
+    
+    uint16_t n_deref0 = timer_0;
+    
+    if ((bool) ((uint16_t) 0U == n_deref0)) { } else {
+        uint16_t n_cse1 = (uint16_t) (n_deref0 - (uint16_t) 1U);
+        
+        timer_0 = n_cse1;
+        if ((bool) (n_cse1 > (uint16_t) 0U)) { } else {
+            timer_2();
+        }
+    }
+}
+```
+
+and the header:
+
+```c
+// module timer Header:
+
+#include "ivory.h"
+extern uint16_t timer_0;
+extern uint8_t counter_decr_0;
+void timer_1(void);
+void timer_2(void);
+void timer(void);
+void ion_decr_0(void);
+```
+
+This should look similar to the last section, but with the addition
+now of `timer_0`.  Our procedure with `newProc` was also turned into
+the C function `timer_2`.
 
 CPS
 ----
