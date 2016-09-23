@@ -9,12 +9,20 @@ To-do:
 
 - Get Ion up to date with Ivory master and hackage version
 - Get Ion onto Hackage.
-- Bullet-point list or short description: What is Ion?
 - Get a Nix build into Ion and maybe Ivory (?)
-- Write a post on Ivory (?)
 - Get a real example of CPS.
 - Get a real example of something with timing.
 - Composition-of-CPS example.
+- Grep for all TODO elsewhere here
+
+Really Short Version
+====
+
+[Ion][] is a Haskell EDSL that I wrote for concurrent, realtime,
+embedded programming, targeting the [Ivory][] EDSL.  It's on hackage.
+It's rather experimental.
+
+-- TODO: hackage link above
 
 Background: Atom & Ivory {#background}
 ====
@@ -66,7 +74,7 @@ What is Ion?
 ----
 
 Ion, in brief, is a Haskell EDSL for concurrent, realtime, embedded
-programming.  It is targets the [Ivory][] EDSL and is coupled closely
+programming.  It targets the [Ivory][] EDSL and is coupled closely
 with it.
 
 I made Ion to cover two main cases:
@@ -76,19 +84,23 @@ I made Ion to cover two main cases:
 * Handling tasks that may need to call other tasks asynchronously, and
   ultimately work with a form of continuation-passing style.
 
+I sort of gloss over the "why?" of the first part because it's almost
+all of the same reasons of why Atom exists.  I try to answer the
+"why?" of the second part, and to some extent the "how?", below.
+
 Async & CPS
 ====
 
 In the application that was using Ion, I started integrating in some
-support for network communication.  This involved many operations of
-transmitting a command over a UART, waiting for a reply sometime in
-the future which contained the result of that command.  Or, maybe it
-didn't - maybe it just contained some minor error, and the command
-should be retried.  Or, maybe it was a fatal error, and the only thing
-left to do was try to close down the connections, power off the modem,
-and power off the UART.  Or, maybe the reply was just total garbage
-from the UART.  Or, maybe something left the modem in a weird state,
-and it sent no reply at all.
+support for network communication via a SIM800 GSM modem.  This
+involved many operations of transmitting a command over a UART,
+waiting for a reply sometime in the future which contained the result
+of that command.  Or, maybe it didn't - maybe it just contained some
+minor error, and the command should be retried.  Or, maybe it was a
+fatal error, and the only thing left to do was try to close down the
+connections, power off the modem, and power off the UART.  Or, maybe
+the reply was just total garbage from the UART.  Or, maybe something
+left the modem in a weird state, and it sent no reply at all.
 
 The world of rigid, deterministic timing didn't really have a place
 for this sort of uncertainly-timed, non-deterministic, divergent
@@ -122,13 +134,15 @@ static memory.
 As a side note, Ivory does provide a nice [coroutines][]
 implementation, but I ran into two issues with them: They put every
 variable (whether 'live' across a suspend/yield or not) into static
-memory, and they are not composable.
+memory, and they were not composable.
 [An appendix section](#coroutines) gives some more details on this.
 
 I wanted coroutines I could parametrize over other coroutines
 (higher-order coroutines?), which seemed to require something like a
 coroutine whose 'resume' continuation and 'exit' continuation both
-were reified rather than implicit.
+were reified rather than implicit.  I also wanted it to be in a form
+that I could interface it with C APIs that wanted function pointers
+for callbacks or "normal" functions for interrupts.
 
 I do not have a reference on this, but from memory, one of Oleg
 Kiselyov's papers defined a coroutine as something like, "two
@@ -139,11 +153,384 @@ ultimately what I was dealing with was
 [continuation-passing style][cps], and indeed CPS can express other
 patterns such as exceptions.  (After reading extensively about
 [Control.Monad.Cont][cont], I concluded that I had less of an idea
-than when I started on whether I could use *Cont*, *ContT*,
-*MonadCont*, or *callCC* to achieve this.  I was leaning towards "no,"
+than when I started on whether I could use `Cont`, `ContT`,
+`MonadCont`, or `callCC` to achieve this.  I was leaning towards "no,"
 but I still have no idea.)
 
-Appendix 1: Atom & Ivory hackery {#hackery}
+From here, it was a couple basic abstractions... and then considerable
+plumbing to get this into a form that could be practically used with
+existing C APIs.  Ivory's procedures rather mimic C functions, and C
+functions are rather lacking for things like partial application or
+higher-order functions.
+
+Examples
+====
+
+The examples here are all rather contrived.  All of the "real" work
+that I did with Ion was proprietary code that I can't share, and even
+if I could, it wouldn't build to an actual embedded target, except in
+the context of the much larger [Shake][] build it was in and the
+entire associated toolchain.
+
+However, I've tried to create some representative examples to a
+hypothetical C API.  See [Example.hs][] for
+these examples in a more buildable form.
+
+Scheduling
+----
+
+First, let's tell Ivory about some (nonexistent) C calls in
+`something.h`, with corresponding C prototypes indicated above for
+those who have no idea how to grok Ivory declarations:
+
+```haskell
+-- void foo(int16_t)
+foo :: Def ('[Sint16] :-> ())
+foo = importProc "foo" "something.h"
+
+-- void bar(int32_t)
+bar :: Def ('[Sint32] :-> ())
+bar = importProc "bar" "something.h"
+
+-- uint16_t get_value(int32_t)
+get_value :: Def ('[Uint8] :-> Uint16)
+get_value = importProc "get_value" "something.h"
+
+-- bool get_flag(void)
+get_flag :: Def ('[] :-> IBool)
+get_flag = importProc "get_flag" "something.h"
+```
+
+Here's a top-level spec.  As with Atom, `period` defines what division
+of a base rate all of its contents inherit - hence, `variousPhases`
+(which I define later) runs at 1/100th of the base rate, unless that's
+overridden.
+
+```haskell
+simpleSchedule :: Ion ()
+simpleSchedule = ion "schedule" $ do
+  
+  period 100 $ do
+    variousPhases
+
+  cond ((>? 10) <$> call get_value) $ do
+    ivoryEff $ comment "get_value() > 10"
+    cond (call get_flag) $ do
+      ivoryEff $ comment "get_value() > 10 && get_flag()"
+```
+
+The entire `cond` block is there to illustrate that parts of a spec
+can be made conditional.  The argument to `cond` isn't exactly a
+boolean, but rather, is an Ivory effect which returns a boolean.  One
+denotes the Ivory effects to weave into all of this with `ivoryEff`,
+and in this case, the code does the very boring effect of inserting a
+C comment with `comment`.
+
+Here is `variousPhases`:
+
+```haskell
+variousPhases :: Ion ()
+variousPhases = do
+    phase 1 $ ivoryEff $ do
+      comment "period 100, phase 1"
+      call_ foo
+    phase 10 $ ion "optional_tag" $ ivoryEff $ do
+      comment "period 100, phase 10"
+      call_ bar
+    disable $ phase 20 $ ivoryEff $ do
+      comment "shouldn't even appear in code"
+      call_ foo
+      call_ bar
+    delay 50 $ do
+      p <- getSched
+      ivoryEff $ do
+        comment "Should be phase 100 + 50"
+        comment ("Reported sched: " ++ show p)
+      delay 10 $ ion "moreDelay" $ do
+        p <- getSched
+        ivoryEff $ do
+          comment "Should be phase 100 + 50 + 10"
+          comment ("Reported sched: " ++ show p)
+      phase 1 $ do
+        ivoryEff $ comment "Should override to phase 1"
+    period 1000 $ do
+      ivoryEff $ comment "Should override all other period"
+```
+
+This is full of `phase`, which behaves more like `exactPhase` from
+Atom, specifying that its contents should execute at some specific
+offset of the current period.  I don't yet have support for the exact
+semantics of Atom's `phase`, which means something more like,
+"schedule it then, at the earliest".
+
+`delay` has no exact analogue in Atom, but it simply specifies that
+something executes at some relative phase past the phase that was
+inherited.  That is, if you nested a series of `delay 1`, they'd all
+proceed one tick apart, starting at what phase they inherited.
+
+If we run all this through Ion and Ivory with `ionCompile ivoryOpts
+"simpleSchedule" simpleSchedule` then the below C code results:
+
+```c
+// module simpleSchedule Source:
+
+#include "simpleSchedule.h"
+uint8_t counter_schedule_0 = (uint8_t) 1U;
+uint8_t counter_optional_tag_1 = (uint8_t) 10U;
+uint8_t counter_schedule_2 = (uint8_t) 50U;
+uint8_t counter_moreDelay_3 = (uint8_t) 60U;
+uint8_t counter_schedule_4 = (uint8_t) 1U;
+uint16_t counter_schedule_5 = (uint16_t) 0U;
+uint8_t counter_schedule_6 = (uint8_t) 0U;
+uint8_t counter_schedule_7 = (uint8_t) 0U;
+void simpleSchedule(void)
+{
+    /* Auto-generated schedule entry procedure from Ion & Ivory */
+    /* Path: schedule */
+    if ((bool) ((uint8_t) 0U == counter_schedule_0)) {
+        ion_schedule_0();
+        counter_schedule_0 = (uint8_t) 99U;
+    } else {
+        counter_schedule_0 = (uint8_t) (counter_schedule_0 - (uint8_t) 1U);
+    }
+    /* Path: schedule.optional_tag */
+    if ((bool) ((uint8_t) 0U == counter_optional_tag_1)) {
+        ion_optional_tag_1();
+        counter_optional_tag_1 = (uint8_t) 99U;
+    } else {
+        counter_optional_tag_1 = (uint8_t) (counter_optional_tag_1 - (uint8_t) 1U);
+    }
+    /* Path: schedule */
+    if ((bool) ((uint8_t) 0U == counter_schedule_2)) {
+        ion_schedule_2();
+        counter_schedule_2 = (uint8_t) 99U;
+    } else {
+        counter_schedule_2 = (uint8_t) (counter_schedule_2 - (uint8_t) 1U);
+    }
+    /* Path: schedule.moreDelay */
+    if ((bool) ((uint8_t) 0U == counter_moreDelay_3)) {
+        ion_moreDelay_3();
+        counter_moreDelay_3 = (uint8_t) 99U;
+    } else {
+        counter_moreDelay_3 = (uint8_t) (counter_moreDelay_3 - (uint8_t) 1U);
+    }
+    /* Path: schedule */
+    if ((bool) ((uint8_t) 0U == counter_schedule_4)) {
+        ion_schedule_4();
+        counter_schedule_4 = (uint8_t) 99U;
+    } else {
+        counter_schedule_4 = (uint8_t) (counter_schedule_4 - (uint8_t) 1U);
+    }
+    /* Path: schedule */
+    if ((bool) ((uint16_t) 0U == counter_schedule_5)) {
+        ion_schedule_5();
+        counter_schedule_5 = (uint16_t) 999U;
+    } else {
+        counter_schedule_5 = (uint16_t) (counter_schedule_5 - (uint16_t) 1U);
+    }
+    /* Path: schedule */
+    if ((bool) ((uint8_t) 0U == counter_schedule_6)) {
+        ion_schedule_6();
+        counter_schedule_6 = (uint8_t) 0U;
+    } else {
+        counter_schedule_6 = (uint8_t) (counter_schedule_6 - (uint8_t) 1U);
+    }
+    /* Path: schedule */
+    if ((bool) ((uint8_t) 0U == counter_schedule_7)) {
+        ion_schedule_7();
+        counter_schedule_7 = (uint8_t) 0U;
+    } else {
+        counter_schedule_7 = (uint8_t) (counter_schedule_7 - (uint8_t) 1U);
+    }
+}
+void ion_schedule_0(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule */
+    /* Phase: 1 */
+    /* Period: 100 */
+    /* Action has no conditions */
+    /* period 100, phase 1 */
+    foo();
+}
+void ion_optional_tag_1(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule.optional_tag */
+    /* Phase: 10 */
+    /* Period: 100 */
+    /* Action has no conditions */
+    /* period 100, phase 10 */
+    bar();
+}
+void ion_schedule_2(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule */
+    /* Phase: 50 */
+    /* Period: 100 */
+    /* Action has no conditions */
+    /* Should be phase 100 + 50 */
+    /* Reported sched: Schedule {schedId = 0, schedName = "schedule", schedPath = ["schedule"], schedPhase = 50, schedPeriod = 100, schedAction = [], schedCond = []} */
+    ;
+}
+void ion_moreDelay_3(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule.moreDelay */
+    /* Phase: 60 */
+    /* Period: 100 */
+    /* Action has no conditions */
+    /* Should be phase 100 + 50 + 10 */
+    /* Reported sched: Schedule {schedId = 0, schedName = "moreDelay", schedPath = ["schedule","moreDelay"], schedPhase = 60, schedPeriod = 100, schedAction = [], schedCond = []} */
+    ;
+}
+void ion_schedule_4(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule */
+    /* Phase: 1 */
+    /* Period: 100 */
+    /* Action has no conditions */
+    /* Should override to phase 1 */
+    ;
+}
+void ion_schedule_5(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule */
+    /* Phase: 0 */
+    /* Period: 1000 */
+    /* Action has no conditions */
+    /* Should override all other period */
+    ;
+}
+void ion_schedule_6(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule */
+    /* Phase: 0 */
+    /* Period: 1 */
+    /* Action has 1 conditions: */
+    ;
+    
+    uint16_t n_r0 = get_value();
+    
+    if ((bool) (n_r0 > (uint16_t) 10U)) {
+        /* get_value() > 10 */
+        ;
+    }
+}
+void ion_schedule_7(void)
+{
+    /* Auto-generated schedule procedure from Ion & Ivory */
+    /* Path: schedule */
+    /* Phase: 0 */
+    /* Period: 1 */
+    /* Action has 2 conditions: */
+    ;
+    
+    bool n_r0 = get_flag();
+    uint16_t n_r1 = get_value();
+    
+    if ((bool) (n_r0 && (bool) (n_r1 > (uint16_t) 10U))) {
+        /* get_value() > 10 && get_flag() */
+        ;
+    }
+}
+```
+
+and this header:
+```c
+// module simpleSchedule Header:
+
+#include "ivory.h"
+extern uint8_t counter_schedule_0;
+extern uint8_t counter_optional_tag_1;
+extern uint8_t counter_schedule_2;
+extern uint8_t counter_moreDelay_3;
+extern uint8_t counter_schedule_4;
+extern uint16_t counter_schedule_5;
+extern uint8_t counter_schedule_6;
+extern uint8_t counter_schedule_7;
+void simpleSchedule(void);
+void ion_schedule_0(void);
+void ion_optional_tag_1(void);
+void ion_schedule_2(void);
+void ion_moreDelay_3(void);
+void ion_schedule_4(void);
+void ion_schedule_5(void);
+void ion_schedule_6(void);
+void ion_schedule_7(void);
+```
+
+`simpleSchedule` is the most important of this: This is the main
+scheduling function that must be called at the base rate (through a
+timer, an interrupt, or something of the sort) for anything to work
+right.  Often this must be set up outside of Ivory because Ivory
+really isn't interested in whatever C/ASM black magic the timer
+requires. Also, the name of that function is what we supplied to
+`ionCompile`.
+
+It has also produced several variables, all of the `counter_` ones,
+which are used for establishing the correct periods and phases.  Take
+a look in `simpleSchedule` and the pattern should be clear (as well as
+near-identical to how Atom does it, since I basically copied its
+method): Each Ivory effect in a particular period/phase context turns
+into a branch, a function, and a counter variable.  The counter
+variable starts at the respective phase, and each branch is
+responsible for resetting it to the respective period, decrementing
+the counter, and calling the function that contains the Ivory effects.
+Note also that `counter_schedule_5` uses a `uint16_t` - it corresponds
+to the `period 1000` block, so a larger counter variable is needed to
+fit that range. Note also in `ion_schedule_7` that nesting conditions
+with `cond` leads to all of them applying (i.e. logical AND).
+
+Read through the code in some more detail, and it should be clear how
+specifications map and flatten out to generated C code.  The names
+given in `ion` are for the most part just for documentation purposes;
+Ion is perfectly content to generate unique C identifiers without
+help.  Note that each point has a sort of "path" that led to it, and
+that path determines how it is scheduled.
+
+Timers
+----
+
+
+CPS
+----
+
+
+Conclusions
+====
+
+Ion helped me immensely with generating large amounts of C plumbing
+whose behavior was very easy to reason about.  It cut both ways, as it
+also made it trivial to very quickly occupy a lot of RAM, produce huge
+binaries, and generate a lot of very complex code very quickly.
+
+Much of the aforementioned plumbing was to bundle together the
+boilerplate that Ivory requires - things like `incl` for every single
+function that actually needs to be a C function by way of an Ivory
+procedure.  In Haskell-world, one doesn't normally think of having to
+explicitly declare each function, but Ivory inherits this C
+limitation.  When Ion has to generate a lot of Ivory procedures and
+variables (particularly when I'm using it to parametrize these
+definitions over something), it has to accumulate all of this somehow
+and get it to Ivory's compiler.
+
+I tried to fix the bugs in Ion that pertained to correctness, but it
+still has a lot of room for improvement when it comes to efficiency
+and comprehensibility of the generated code for scheduling, and part
+of that is because it errs on the side of paranoia.
+
+I coupled together in the Ion monad the functionality for the
+strictly-timed scheduling, and all of the continuating-passing
+rigging.  To me, these felt like two pieces that should have been
+separate, however, I wasn't able to find a satisfactory way to do
+this.
+
+*Appendix 1: Atom & Ivory hackery* {#hackery}
 ====
 
 Atom and Ivory both generate C code, and to that end, both express
@@ -177,7 +564,7 @@ As an aside, if I remember right, a fair number of the bugs discovered
 in the code were a direct result of me bypassing the type system in
 this manner.
 
-Appendix 2: Limitations on Coroutines {#coroutines}
+*Appendix 2: Limitations on Coroutines* {#coroutines}
 ====
 
 Two pernicious limitation I ran into on Ivory's coroutines were an
@@ -204,7 +591,7 @@ B return a value to its caller, nor can it pass its own "yield"
 elsewhere and let another context suspend it.
 
 In other words: these coroutines don't provide their own continuations
-or an "exit" continuation; that's all handled indirectly.
+or an "exit" continuation; that's all handled implicitly.
 
 [Ivory]: https://github.com/GaloisInc/ivory
 [Atom]: https://hackage.haskell.org/package/atom
@@ -217,3 +604,5 @@ or an "exit" continuation; that's all handled indirectly.
 [coroutines]: https://github.com/GaloisInc/ivory/blob/master/ivory/src/Ivory/Language/Coroutine.hs
 [cps]: https://en.wikipedia.org/wiki/Continuation-passing_style
 [cont]: https://hackage.haskell.org/package/mtl/docs/Control-Monad-Cont.html
+[Shake]: https://hackage.haskell.org/package/shake
+[Example.hs]: https://github.com/HaskellEmbedded/ion/blob/master/src/Ivory/Language/Ion/Examples/Example.hs
