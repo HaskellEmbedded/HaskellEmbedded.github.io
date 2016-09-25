@@ -953,7 +953,7 @@ or an "exit" continuation; that's all handled implicitly.
 [atom_val]: http://hackage.haskell.org/package/atom-1.0.12/docs/Language-Atom-Expressions.html#t:V
 [Sint16]: https://hackage.haskell.org/package/ivory-0.1.0.0/docs/Ivory-Language.html#t:Sint16
 [Ion]: https://github.com/HaskellEmbedded/ion
-[ion_hackage]: https://hackage.haskell.org/package/ion-1.0.0.0
+[ion_hackage]: https://hackage.haskell.org/package/ion
 [usenix2002]: https://www.usenix.org/legacy/events/usenix02/full_papers/adyahowell/adyahowell_html/index.html
 [Rust]: https://www.rust-lang.org/
 [Redox]: http://www.redox-os.org/
