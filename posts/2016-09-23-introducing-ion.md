@@ -866,8 +866,8 @@ Conclusions
 
 Ion helped me immensely with generating large amounts of C plumbing
 whose behavior was very easy to reason about.  It also cut both ways,
-as it made it trivial to very quickly occupy a lot of RAM, produce
-huge binaries, and generate a lot of very complex code very quickly.
+as it made it trivial to very quickly occupy a lot of RAM, generate a
+lot of unnecessary code, and produce huge binaries.
 
 Much of the aforementioned plumbing was to bundle together the
 boilerplate that Ivory requires - things like `incl` for every single
