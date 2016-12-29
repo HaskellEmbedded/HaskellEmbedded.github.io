@@ -8,6 +8,7 @@ Posts reference these links in context, but they are still useful in a central s
 - [Ivory][] ([hackage][ivory-hackage], [GitHub repo][ivory-github]) is a more general EDSL from Galois "for safer systems programming". Ivory is still quite young, but looks very promising.
     - This experience report is probably the best introduction: [Building Embedded Systems with Embedded DSLs (Experience Report)][ivory-paper]
     - Their GitHub repo contains a [paper][ivory-paper2] that is still a work-in-progress.
+    - Our own [Ion][] library (see the [Introducing Ion][ion_post] post) targets Ivory.
 - [Copilot][] ([hackage][copilot-hackage]) is a "stream language for generating hard real-time C code" also from Galois. Documentation on Copilot is excellent.
     - This report from NASA gives a good explanation: [Experience Report: a Do-It-Yourself High-Assurance Compiler][nasa-copilot]
     - Copilot has backends for both Atom and SBV. Anthony Cowley's talk at NYHUG, [Abstractions for the Functional Roboticist][functionalroboticist-video] (& [slides PDF][functionalroboticist]), talks about both Copilot and SBV, among other things.
@@ -66,6 +67,8 @@ Posts reference these links in context, but they are still useful in a central s
 [ivory-paper]: https://github.com/GaloisInc/smaccmpilot-experiencereport/blob/master/embedded-experience.pdf?raw=true "Hickey, P. C., Pike, L., Elliott, T., Bielman, J., & Launchbury, J. (2014) Building Embedded Systems with Embedded DSLs (Experience Report)."
 [ivory-paper2]: https://github.com/GaloisInc/ivory/tree/master/ivory-paper
 [ivory]: http://ivorylang.org/
+[ion_post]: ../posts/2016-09-23-introducing-ion.html
+[ion]: https://github.com/HaskellEmbedded/ion
 [lava]: http://blog.raintown.org/p/lava.html
 [llvm-general]: https://hackage.haskell.org/package/llvm-general
 [nasa-copilot]: http://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/20120014570.pdf "Pike, L., Wegmann, N., Niller, S., & Goodloe, A. (2012). Experience Report: a Do-It-Yourself High-Assurance Compiler."
